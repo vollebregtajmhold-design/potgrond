@@ -477,6 +477,10 @@
       <p>Log in met je Google-account om de recepten te bekijken en te bewerken.</p>
       <button type="button" class="btn-google" id="googleSignInBtn">Inloggen met Google</button>
     </div>
+    <div id="lokaalBackupWrap" style="display:none; margin-top:16px; padding-top:14px; border-top:1px solid var(--border)">
+      <p style="margin-bottom:10px" id="lokaalBackupTekst"></p>
+      <button type="button" class="btn-google" id="lokaalBackupBtn">&#8681; Backup van deze gegevens downloaden</button>
+    </div>
     <div id="authDenied" style="display:none">
       <h1>Geen toegang</h1>
       <p class="auth-denied" id="authDeniedEmail"></p>
@@ -962,6 +966,28 @@
     if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return '';
     return 'Inloggen mislukt (' + code + ').';
   }
+
+  // Gegevens die nog alleen in deze browser staan: altijd te downloaden vanaf het inlogscherm.
+  function toonLokaleBackupKnop() {
+    let aantal = 0;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      aantal = Array.isArray(arr) ? arr.length : 0;
+    } catch (e) {}
+    const wrap = document.getElementById('lokaalBackupWrap');
+    if (!aantal) { wrap.style.display = 'none'; return; }
+    document.getElementById('lokaalBackupTekst').textContent =
+      'In deze browser staan ' + aantal + ' mengsel(s). Download ze en zet ze daarna terug in de online versie.';
+    wrap.style.display = '';
+  }
+  document.getElementById('lokaalBackupBtn').addEventListener('click', () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) DATA = JSON.parse(raw);
+    } catch (e) {}
+    downloadBackup();
+  });
 
   async function startFirebase() {
     try {
@@ -1945,6 +1971,7 @@
   loadLocalData();
   zorgVoorIds();
   buildMatrix();
+  toonLokaleBackupKnop();
   startFirebase();
 </script>
 </body>
