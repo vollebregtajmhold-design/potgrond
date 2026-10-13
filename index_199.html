@@ -1,0 +1,1951 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Potgrondmengsels — Matrix</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Potgrond">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3F8C55">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #E6F4EA;
+    --bg-2: #F0F9F2;
+    --surface: #C5E3CC;
+    --surface-2: #F4F0E9;
+    --text: #1F4A2E;
+    --text-dim: #5A8066;
+    --text-panel: #FFFFFF;
+    --text-panel-dim: #EAF7EE;
+    --border: #D3EBD9;
+    --accent: #A8445B;
+    --c-rood: #E0685F;
+    --tint-blue: #E9F7EC;
+    --shadow: 0 1px 3px rgba(31,74,46,0.06), 0 14px 32px -16px rgba(31,74,46,0.22);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #F4F0E9;
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 24px 28px 60px;
+  }
+  .wrap { max-width: 1900px; margin: 0 auto; }
+
+  .save-toast {
+    position: fixed; top: 14px; right: 14px; z-index: 500;
+    background: var(--text); color: #fff; font-size: 13px; font-weight: 600;
+    padding: 9px 16px; border-radius: 999px; box-shadow: var(--shadow);
+    opacity: 0; transform: translateY(-6px); pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .save-toast.show { opacity: 1; transform: translateY(0); }
+  .save-toast.error { background: var(--accent); }
+
+  header { margin-bottom: 20px; display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  h1 {
+    font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 23px;
+    line-height: 1.2; margin: 0; letter-spacing: -0.01em; color: #10261A;
+  }
+  .header-stats { font-size: 12px; color: var(--text-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .matrix-shell {
+    position: relative; background: #F4F0E9; border: 1px solid var(--border);
+    border-left: 5px solid var(--accent); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .matrix-scroll { overflow: auto; max-height: calc(100vh - 210px); }
+  table { border-collapse: separate; border-spacing: 0; font-size: 12.5px; white-space: nowrap; }
+  thead th {
+    position: sticky; top: 0; background: var(--surface); color: var(--text-panel);
+    font-weight: 700; padding: 7px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.18); border-right: 1px solid rgba(255,255,255,0.12);
+    text-align: center; z-index: 2;
+  }
+  thead tr.klant-row th { top: 0; font-size: 12px; background: #4A9A5E; z-index: 3; }
+  thead tr.serie-row th {
+    top: 29px; font-size: 11.5px; font-weight: 700; color: var(--text);
+    border-bottom: 1px solid rgba(31,74,46,0.15); border-right: 1px solid rgba(31,74,46,0.1);
+  }
+  thead tr.jaar-row th {
+    top: 58px; font-size: 10.5px; font-weight: 700; color: var(--text); background: #DCF0E1;
+    padding: 4px 10px; font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid rgba(31,74,46,0.15); border-right: 1px solid rgba(31,74,46,0.1);
+  }
+  .jaar-check {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; margin-left: 4px; border-radius: 50%;
+    background: #0F6B36; color: #FFFFFF; font-size: 9px; font-weight: 700; line-height: 1;
+    cursor: help; vertical-align: middle;
+  }
+  thead tr.serie-row th.clickable { max-width: 92px; overflow: hidden; text-overflow: ellipsis; padding: 7px 6px; }
+  thead tr.jaar-row th { padding: 4px 5px; }
+  tbody td { padding: 5px 6px; min-width: 56px; }
+  /* Zwarte kaderrandjes in de matrix */
+  #matrixTable { border-top: 1px solid #000; border-left: 1px solid #000; }
+  #matrixTable th, #matrixTable td { border-bottom: 1px solid #000 !important; border-right: 1px solid #000 !important; }
+  .bev-datum { margin-left: 4px; font-weight: 600; color: #0F6B36; }
+  .notitie-icon { font-size: 12px; margin-left: 3px; cursor: help; opacity: 0.85; }
+  thead th.corner {
+    position: sticky; left: 0; top: 0; z-index: 5;
+    background: var(--surface-2); color: var(--text-dim); text-align: left;
+  }
+  thead tr.klant-row th.corner { z-index: 6; }
+
+  tbody th {
+    position: sticky; left: 0; z-index: 1; background: var(--surface-2); color: var(--text);
+    text-align: left; font-weight: 600; padding: 5px 10px 5px 8px;
+    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody td {
+    padding: 5px 10px; text-align: center;
+    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+    color: var(--text); font-variant-numeric: tabular-nums; background: var(--surface-2);
+  }
+  tbody td.empty { color: #B9AC9C; font-weight: 400; }
+  tbody td.filled { font-weight: 600; }
+  tbody tr:hover td:not(.empty) { filter: brightness(0.96); }
+  tbody tr:hover th { background: #E7DFD3; }
+
+  footer { margin-top: 14px; font-size: 12px; color: var(--text-dim); }
+
+  :root { --accent-ink: #FFFFFF; --accent-soft: #F6E3E7; --border-panel: rgba(255,255,255,0.25); }
+
+  .toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filter-bar { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+  .filter-field label {
+    display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;
+  }
+  .multi-select-wrap { position: relative; }
+  .multi-select-btn {
+    font-family: inherit; font-size: 13.5px; font-weight: 400; color: var(--text);
+    background: #FFFFFF; border: 1px solid #DDECE1; border-radius: 999px;
+    padding: 8px 11px; width: 190px; text-align: left; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: space-between; gap: 6px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .multi-select-btn:hover { border-color: var(--accent); }
+  .multi-select-wrap.open .multi-select-btn { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .multi-select-btn .ms-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .multi-select-btn .caret { display: inline-block; font-size: 10px; flex: 0 0 auto; transition: transform 0.15s ease; }
+  .multi-select-wrap.open .multi-select-btn .caret { transform: rotate(180deg); }
+  #jaarSelectWrap .multi-select-btn { width: 100px; }
+  .btn-clear-filter {
+    font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 999px;
+    padding: 8px 14px; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-clear-filter:hover { background: #FFFFFF; }
+  .btn-clear-filter:active { transform: scale(0.97); }
+
+  .export-menu { position: relative; display: inline-block; }
+  #exportMenuBtn .caret { display: inline-block; transition: transform 0.15s ease; }
+  .export-menu.open #exportMenuBtn .caret { transform: rotate(180deg); }
+  .export-menu-dropdown {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0;
+    background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 6px; min-width: 180px; z-index: 20;
+  }
+  .export-menu.open .export-menu-dropdown { display: block; }
+  .export-menu-dropdown button {
+    display: block; width: 100%; text-align: left; font-family: inherit; font-size: 13px;
+    font-weight: 600; color: var(--text); background: transparent; border: none;
+    border-radius: 9px; padding: 9px 10px; cursor: pointer; transition: background 0.15s ease;
+  }
+  .export-menu-dropdown button:hover { background: var(--tint-blue); }
+
+  .cell-sub-only { color: var(--c-rood); font-weight: 700; }
+
+  .modal.op-kleur-mode .color-fixed-row { grid-template-columns: 1fr 110px 70px; }
+  .modal.op-kleur-mode .color-fixed-row .cf-pct { display: none; }
+  .modal.op-kleur-mode .fixed-color-head { grid-template-columns: 1fr 110px 70px; }
+  .modal.op-kleur-mode .fixed-color-head span:nth-child(3) { display: none; }
+  .modal.op-kleur-mode .color-edit-row { grid-template-columns: 1fr 110px 70px 30px; }
+  .modal.op-kleur-mode .color-edit-row .ce-pct { display: none; }
+  .modal.op-kleur-mode #editTotalPct { display: none; }
+
+  .multi-select-dropdown {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0;
+    background: #FFFFFF; border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 8px; width: 210px; max-height: 260px;
+    overflow-y: auto; z-index: 20;
+  }
+  .multi-select-wrap.open .multi-select-dropdown { display: block; }
+  .multi-select-item {
+    display: flex; align-items: center; gap: 8px; padding: 5px 4px; font-size: 13px;
+    font-weight: 400; color: var(--text); border-radius: 8px; cursor: pointer;
+  }
+  .multi-select-item:hover { background: var(--tint-blue); }
+  .multi-select-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; flex: 0 0 auto; }
+  .multi-select-empty { font-size: 12.5px; color: var(--text-dim); padding: 4px; }
+  .multi-select-footer { display: flex; justify-content: flex-end; padding-top: 6px; margin-top: 4px; border-top: 1px solid var(--border); }
+  .multi-select-footer button {
+    font-family: inherit; font-size: 11.5px; font-weight: 700; color: var(--accent);
+    background: transparent; border: none; cursor: pointer; padding: 4px 6px;
+  }
+
+  .toolbar-right { display: flex; align-items: flex-end; gap: 10px; }
+  .btn-toggle {
+    font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--text);
+    background: #FFFFFF; border: 1px solid #DDECE1; border-radius: 999px;
+    padding: 8px 14px; cursor: pointer; min-width: 60px; transition: background 0.15s ease;
+  }
+  .btn-toggle:hover { border-color: var(--accent); }
+  .btn-toggle.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+  tbody td.has-decimal { background: #FFF3C4 !important; }
+  tbody td.has-opm { box-shadow: inset 0 -3px 0 -1.5px var(--accent); cursor: help; }
+  tbody td.has-sub-layout { text-align: left; }
+  .cell-inner { display: flex; align-items: baseline; width: 100%; }
+  .cell-val { flex: 1 1 auto; text-align: right; }
+  .cell-subwrap { flex: 0 0 28px; text-align: left; padding-left: 2px; }
+  .cell-sub { font-weight: 600; color: var(--c-rood); font-size: 11px; }
+  .btn-new-serie {
+    font-family: inherit; font-size: 13.5px; font-weight: 700; color: var(--accent-ink);
+    background: var(--accent); border: none; border-radius: 999px; padding: 10px 18px;
+    cursor: pointer; box-shadow: 0 6px 16px -6px rgba(168,68,91,0.55);
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .btn-new-serie:hover { box-shadow: 0 8px 20px -6px rgba(168,68,91,0.6); }
+  .btn-new-serie:active { transform: scale(0.97); }
+
+  thead tr.serie-row th.clickable { cursor: pointer; }
+  thead tr.serie-row th.clickable:hover { background: var(--accent); color: #FFFFFF; }
+  thead tr.serie-row th.not-hundred { background: #E8C94A; color: #4A3B00; }
+  thead tr.serie-row th.not-hundred:hover { background: #D4B62E; color: #4A3B00; }
+
+  /* ---- Modal ---- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(20,40,28,0.55);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 40px 20px; overflow-y: auto; z-index: 100;
+  }
+  .modal {
+    --surface: #E6F4EA; --text-panel: #1F4A2E; --text-panel-dim: #4C7A58; --border-panel: #C9E6D0;
+    background: var(--bg); border-radius: 22px; width: 100%; max-width: 500px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+    background: var(--surface); border-bottom: 1px solid var(--border-panel);
+  }
+  .modal-head h2 { font-family: 'Fraunces', Georgia, serif; font-size: 16px; font-weight: 600; color: var(--text-panel); margin: 0; }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 10px; border: none;
+    background: rgba(31,74,46,0.08); color: var(--text-panel); font-size: 13px; cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .modal-close:hover { background: rgba(31,74,46,0.16); }
+  .modal-body { padding: 12px 16px; max-height: 76vh; overflow-y: auto; }
+  .modal-actions { display: flex; flex-direction: column; gap: 8px; padding: 10px 16px; background: var(--surface-2); }
+  .modal-actions-row { display: flex; gap: 8px; }
+  .modal-actions .btn-primary { flex: 2; }
+  .modal-actions .btn-secondary, .modal-actions .btn-danger { flex: 1; margin-top: 0; }
+  .btn-copy-year { width: 100%; background: var(--surface); color: var(--text-panel); border: 1px solid var(--border-panel); }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 11px 13px; margin-bottom: 8px; }
+  .panel:last-child { margin-bottom: 0; }
+  .panel h2 { font-family: 'Fraunces', Georgia, serif; font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--text-panel); }
+  .panel p.sub { color: var(--text-panel-dim); font-size: 13px; margin: 0 0 8px; line-height: 1.4; }
+
+  .field { margin-bottom: 8px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em;
+    text-transform: uppercase; color: var(--text-panel-dim); margin-bottom: 3px;
+  }
+  .bevestigd-door { margin: 4px 0 0; font-size: 11.5px; color: var(--text-panel-dim); }
+  .field-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .field-row:last-child { margin-bottom: 0; }
+  .field-row .field { flex: 1; margin-bottom: 0; min-width: 0; }
+  .field-inline { display: flex; align-items: center; gap: 10px; }
+  .field-inline label { margin-bottom: 0; white-space: nowrap; }
+  .field-inline input { flex: 0 0 110px; width: 110px; }
+  .panel select, .panel input[type="text"], .panel input[type="number"], .panel input[type="date"], .panel textarea {
+    width: 100%; font-family: inherit; font-size: 14.5px; color: var(--text);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; padding: 7px 10px;
+  }
+  .panel textarea { resize: vertical; box-sizing: border-box; font-size: 13.5px; line-height: 1.4; }
+  .panel select:focus, .panel input:focus, .panel textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .result-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+  .result-head h2 { margin: 0; }
+  .result-count { font-size: 12px; color: var(--text-panel-dim); font-variant-numeric: tabular-nums; }
+
+  .kleuren-sticky-head {
+    position: sticky; top: 0; z-index: 5; background: var(--surface);
+    margin: -10px -12px 0; padding: 10px 12px 6px; border-bottom: 1px solid var(--border-panel);
+  }
+  .kleuren-sticky-head .result-count {
+    font-size: 13px; font-weight: 700; color: var(--text-panel);
+    background: var(--surface-2); border-radius: 8px; padding: 2px 8px;
+  }
+
+  .btn-primary, .btn-secondary, .btn-danger {
+    font-family: inherit; font-size: 14px; font-weight: 600; border-radius: 13px;
+    padding: 11px 16px; cursor: pointer; border: none;
+    transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: 0 6px 16px -6px rgba(168,68,91,0.55); }
+  .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .btn-danger { background: var(--surface-2); color: var(--accent); border: 1px solid var(--accent); }
+  .btn-primary:active, .btn-secondary:active, .btn-danger:active { transform: scale(0.97); }
+  .btn-add {
+    background: var(--surface-2); color: var(--text-panel); border: 1px solid var(--border-panel);
+    width: 100%; margin-top: 4px; font-family: inherit; font-size: 13px; font-weight: 600;
+    border-radius: 11px; padding: 8px 12px; cursor: pointer; transition: background 0.15s ease;
+  }
+  .btn-add:hover { background: #FFFFFF; }
+
+  .color-fixed-row {
+    display: grid; grid-template-columns: 1fr 68px 60px 58px; gap: 5px; align-items: center;
+    padding: 0; border-bottom: 1px solid var(--border-panel);
+  }
+  .color-fixed-row:last-child { border-bottom: none; }
+  .color-fixed-row .cf-name { font-size: 13.5px; color: var(--text-panel); }
+  .panel .color-fixed-row input {
+    width: 100%; font-family: inherit; font-size: 14px; font-variant-numeric: tabular-nums;
+    color: var(--text); background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 3px 6px; line-height: 16px; text-align: right; -moz-appearance: textfield;
+  }
+  .color-fixed-row input::-webkit-outer-spin-button,
+  .color-fixed-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .panel .color-fixed-row input.cf-sub { text-align: center; font-size: 12.5px; }
+  .panel .color-fixed-row input.cf-opm { text-align: left; font-size: 12px; }
+  .color-fixed-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .color-fixed-row input:not(:placeholder-shown) { border-color: var(--accent); background: var(--accent-soft); }
+  .fixed-color-head {
+    display: grid; grid-template-columns: 1fr 68px 60px 58px; gap: 5px; font-size: 10px;
+    font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;
+    color: var(--text-panel-dim); padding-bottom: 4px;
+  }
+  .fixed-color-head span:not(:first-child) { text-align: center; }
+  .fixed-color-head span:last-child { line-height: 1.05; align-self: end; }
+
+  .subhead {
+    font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;
+    color: var(--text-panel-dim); margin: 10px 0 6px;
+  }
+  .color-edit-row { display: grid; grid-template-columns: 1fr 68px 60px 58px 30px; gap: 5px; align-items: center; margin-bottom: 6px; }
+  .panel .color-edit-row input {
+    width: 100%; font-family: inherit; font-size: 14px; line-height: 16px; color: var(--text);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 3px 6px; -moz-appearance: textfield;
+  }
+  .color-edit-row input::-webkit-outer-spin-button,
+  .color-edit-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .panel .color-edit-row input.ce-sub { text-align: center; font-size: 12.5px; }
+  .panel .color-edit-row input.ce-opm { text-align: left; font-size: 12px; }
+  .color-edit-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .ce-remove {
+    width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border-panel);
+    background: var(--surface-2); color: var(--text-dim); font-size: 13px; cursor: pointer;
+  }
+
+  .empty-note { padding: 40px 20px; text-align: center; color: var(--text-dim); font-size: 14px; }
+
+  .comp-row { display: grid; grid-template-columns: 1fr 112px 72px 26px 26px 30px; gap: 5px; align-items: center; margin-bottom: 5px; }
+  .panel .comp-row input, .panel .comp-row select {
+    width: 100%; font-family: inherit; font-size: 13.5px; color: var(--text);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px;
+  }
+  .comp-move { width: 26px; height: 28px; border-radius: 6px; border: 1px solid var(--border-panel); background: var(--surface-2); color: var(--text-dim); font-size: 11px; cursor: pointer; padding: 0; }
+  .comp-head { display: grid; grid-template-columns: 1fr 112px 72px 88px; gap: 5px; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-panel-dim); padding-bottom: 4px; }
+  tbody tr.sec-row th, tbody tr.sec-row td { background: #DCF0E1; color: var(--text); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 8px; }
+  tbody tr.tot-row th, tbody tr.tot-row td { background: #EEF7F0; font-weight: 700; }
+  tbody tr.tot-row td.fout { background: #F8D7DA; color: #8A1C2B; }
+  .sec-sub { display: flex; justify-content: space-between; align-items: baseline; font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-panel); margin: 10px 0 4px; padding-top: 6px; border-top: 2px solid var(--border-panel); }
+  .sec-sub:first-child { margin-top: 0; border-top: none; }
+  .tot-ok { color: #0F6B36; font-weight: 700; }
+  .tot-fout { color: #FFFFFF; background: var(--accent); border-radius: 6px; padding: 1px 6px; font-weight: 700; }
+  .eenheid { font-weight: 400; color: var(--text-dim); font-size: 11px; }
+  .cf-name .eenheid { color: var(--text-panel-dim); }
+
+  #mobileChromeToggle { display: none; }
+
+  @media (max-width: 640px) {
+    body { padding: 14px 12px 40px; }
+    #mobileChromeToggle {
+      display: inline-flex; align-items: center; gap: 6px; font-family: inherit;
+      font-size: 12.5px; font-weight: 600; color: var(--text); background: #FFFFFF;
+      border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px;
+      margin-bottom: 8px; cursor: pointer; box-shadow: var(--shadow);
+    }
+    #appRoot.chrome-collapsed #topChrome,
+    #appRoot.chrome-collapsed #appFooter { display: none; }
+    #appRoot.chrome-collapsed .matrix-scroll { max-height: calc(100vh - 66px); }
+    header { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .toolbar { flex-direction: column; align-items: stretch; gap: 12px; }
+    .filter-bar { width: 100%; gap: 8px; }
+    .filter-field { flex: 1 1 42%; min-width: 110px; }
+    .multi-select-wrap { width: 100%; }
+    .multi-select-btn { width: 100%; box-sizing: border-box; }
+    #jaarSelectWrap .multi-select-btn { width: 100%; }
+    .btn-clear-filter { flex: 0 0 auto; }
+    .toolbar-right { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; }
+    .btn-new-serie { width: 100%; }
+    .modal-overlay { padding: 0; align-items: stretch; }
+    .modal { max-width: 100%; width: 100%; border-radius: 0; max-height: 100vh; display: flex; flex-direction: column; }
+    .modal-body { max-height: none; flex: 1; }
+  }
+
+  @media print {
+    body { padding: 0; background: #FFFFFF; }
+    .toolbar, .header-stats, footer, .modal-overlay, .save-toast { display: none !important; }
+    .wrap { max-width: none; }
+    .matrix-shell { box-shadow: none; border: none; border-radius: 0; }
+    .matrix-scroll { overflow: visible; max-height: none; }
+    thead th { position: static; }
+    table { font-size: 10.5px; }
+    thead th, thead th.corner, tbody th, tbody td {
+      border-bottom: 1px solid #000000 !important; border-right: 1px solid #000000 !important;
+    }
+    thead tr.serie-row th, thead tr.jaar-row th { border: 1.5px solid #000000 !important; }
+    thead th, thead th.corner, thead tr.klant-row th, thead tr.serie-row th, thead tr.jaar-row th {
+      background: #FFFFFF !important; color: #000000 !important; font-weight: 800 !important;
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    thead tr.serie-row th.not-hundred { color: #A67C00 !important; }
+    .jaar-check { background: #000000 !important; color: #FFFFFF !important; }
+    .btn-logout, .sync-dot { display: none !important; }
+    .user-bar { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; justify-content: flex-end; }
+    .user-bar .user-email { font-size: 9px !important; font-weight: 400 !important; color: #888888 !important; }
+  }
+
+  /* ---- Inloggen ---- */
+  .auth-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: linear-gradient(160deg, var(--bg-2) 0%, var(--bg) 55%, #E4F2E0 100%);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .auth-box {
+    position: relative; background: #FFFFFF; border: 1px solid var(--border);
+    border-left: 5px solid var(--accent); border-radius: 18px; box-shadow: var(--shadow);
+    max-width: 380px; width: 100%; padding: 30px 26px 28px; text-align: center; overflow: hidden;
+  }
+  .auth-box h1 { font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; margin: 0 0 8px; }
+  .auth-box p { font-size: 13.5px; color: var(--text-dim); line-height: 1.5; margin: 0 0 18px; }
+  .btn-google {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+    font-family: inherit; font-size: 14.5px; font-weight: 600; color: var(--text);
+    background: var(--tint-blue); border: 1px solid var(--border); border-radius: 13px;
+    padding: 11px 16px; cursor: pointer; transition: background 0.15s ease, transform 0.1s ease;
+  }
+  .btn-google:hover { background: #FFFFFF; }
+  .btn-google:active { transform: scale(0.98); }
+  .auth-spinner {
+    width: 26px; height: 26px; margin: 0 auto 14px; border-radius: 50%;
+    border: 3px solid var(--border); border-top-color: var(--accent); animation: authspin 0.8s linear infinite;
+  }
+  @keyframes authspin { to { transform: rotate(360deg); } }
+  .auth-denied { color: var(--accent); font-weight: 600; font-size: 13.5px; margin-bottom: 14px; }
+  .user-bar {
+    display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--text-dim);
+    background: #FFFFFF; border: 1px solid var(--border); border-radius: 999px;
+    padding: 6px 8px 6px 14px; box-shadow: var(--shadow);
+  }
+  .user-bar .user-email { font-weight: 600; color: var(--text); }
+  .btn-logout {
+    font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-dim);
+    background: var(--tint-blue); border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 12px; cursor: pointer; transition: background 0.15s ease;
+  }
+  .btn-logout:hover { background: #FFFFFF; }
+  .sync-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; margin-right: 5px; }
+  .sync-dot.offline { background: #D9AC42; }
+</style>
+</head>
+<body>
+
+<div class="save-toast" id="saveToast"></div>
+
+<input type="file" id="importFile" accept=".json,application/json" style="display:none">
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div id="authLoading">
+      <div class="auth-spinner"></div>
+      <p>Verbinden…</p>
+    </div>
+    <div id="authSignedOut" style="display:none">
+      <h1>Potgrond Recepten</h1>
+      <p>Log in met je Google-account om de recepten te bekijken en te bewerken.</p>
+      <button type="button" class="btn-google" id="googleSignInBtn">Inloggen met Google</button>
+    </div>
+    <div id="authDenied" style="display:none">
+      <h1>Geen toegang</h1>
+      <p class="auth-denied" id="authDeniedEmail"></p>
+      <p id="authDeniedText">Dit account heeft geen toegang. Vraag om toegevoegd te worden, of log in met een ander account.</p>
+      <button type="button" class="btn-google" id="authDeniedLogoutBtn">Uitloggen</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" id="appRoot" style="display:none">
+  <button type="button" id="mobileChromeToggle" title="Menu tonen/verbergen">&#9776; Menu</button>
+  <div id="topChrome">
+    <header>
+      <h1>Potgrond Recepten</h1>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span class="header-stats" id="headerStats"></span>
+        <div class="user-bar">
+          <span class="sync-dot offline" id="syncDot" title="Verbinden…"></span>
+          <span class="user-email" id="userEmail"></span>
+          <button type="button" class="btn-logout" id="logoutBtn">Uitloggen</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="filter-bar">
+        <div class="filter-field">
+          <label>Jaar</label>
+          <div class="multi-select-wrap" id="jaarSelectWrap">
+            <button type="button" class="multi-select-btn" id="jaarSelectBtn">
+              <span class="ms-label">Alle jaren</span>
+              <span class="caret">&#9662;</span>
+            </button>
+            <div class="multi-select-dropdown" id="jaarSelectDropdown"></div>
+          </div>
+        </div>
+        <div class="filter-field">
+          <label>Klant</label>
+          <div class="multi-select-wrap" id="klantSelectWrap">
+            <button type="button" class="multi-select-btn" id="klantSelectBtn">
+              <span class="ms-label">Alle klanten</span>
+              <span class="caret">&#9662;</span>
+            </button>
+            <div class="multi-select-dropdown" id="klantSelectDropdown"></div>
+          </div>
+        </div>
+        <div class="filter-field">
+          <label>Mengsel</label>
+          <div class="multi-select-wrap" id="serieSelectWrap">
+            <button type="button" class="multi-select-btn" id="serieSelectBtn">
+              <span class="ms-label">Alle mengsels</span>
+              <span class="caret">&#9662;</span>
+            </button>
+            <div class="multi-select-dropdown" id="serieSelectDropdown"></div>
+          </div>
+        </div>
+        <div class="filter-field">
+          <label for="subnumBtn">Codes</label>
+          <button type="button" class="btn-toggle" id="subnumBtn" data-value="nee">Nee</button>
+        </div>
+        <button type="button" class="btn-clear-filter" id="clearFilterBtn" title="Filter wissen">&#10005; Wissen</button>
+        <div class="export-menu" id="exportMenu">
+          <button type="button" class="btn-clear-filter" id="exportMenuBtn" title="Exportopties">&#8681; Exporteren <span class="caret">&#9662;</span></button>
+          <div class="export-menu-dropdown" id="exportMenuDropdown">
+            <button type="button" id="compBtn">&#9881; Componenten beheren</button>
+            <button type="button" id="printBtn">&#128424; Print</button>
+            <button type="button" id="exportBtn">&#8681; Backup (JSON)</button>
+            <button type="button" id="importBtn">&#8679; Backup terugzetten</button>
+            <button type="button" id="csvBtn">&#8681; CSV export</button>
+          </div>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <button type="button" class="btn-clear-filter" id="compBtn2">&#9881; Componenten</button>
+        <button type="button" class="btn-new-serie" id="newSerieBtn">+ Mengsel aanmaken</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="matrix-shell">
+    <div class="matrix-scroll">
+      <table id="matrixTable"></table>
+    </div>
+  </div>
+
+  <footer id="appFooter">Potgrond versie 0.5 — 13 oktober 2026</footer>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" style="display:none">
+  <div class="modal" id="editModal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Mengsel aanmaken</h2>
+      <button type="button" class="modal-close" id="modalClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <div class="field-row">
+          <div class="field">
+            <label for="fKlantSelect">Klant</label>
+            <select id="fKlantSelect"></select>
+          </div>
+          <div class="field">
+            <label for="fRasSelect">Mengsel</label>
+            <select id="fRasSelect"></select>
+          </div>
+        </div>
+        <div class="field-row" id="renameRow" style="display:none">
+          <button type="button" class="btn-add" id="renameKlantBtn">&#9998; Klantnaam wijzigen</button>
+          <button type="button" class="btn-add" id="renameMengselBtn">&#9998; Mengselnaam wijzigen</button>
+        </div>
+        <div class="field" id="fKlantNewWrap" style="display:none">
+          <label for="fKlantNew">Naam nieuwe klant</label>
+          <input type="text" id="fKlantNew" placeholder="bijv. Kwekerij De Groot">
+        </div>
+        <div class="field" id="fRasNewWrap" style="display:none">
+          <label for="fRasNew">Naam nieuw mengsel</label>
+          <input type="text" id="fRasNew" placeholder="bijv. Potgrond Universeel">
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="field field-inline">
+          <label for="fJaar">Jaar</label>
+          <input type="text" id="fJaar" placeholder="2026">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fAanvraag">Aanvraag</label>
+            <input type="date" id="fAanvraag">
+          </div>
+          <div class="field">
+            <label for="fBevestigd">Bevestigd</label>
+            <input type="date" id="fBevestigd">
+            <p class="bevestigd-door" id="bevestigdDoorInfo" style="display:none"></p>
+          </div>
+        </div>
+        <div class="field">
+          <label for="fNotitie">Notitie</label>
+          <textarea id="fNotitie" rows="2" placeholder="Bijv. bijzonderheden over dit mengsel"></textarea>
+        </div>
+        <div class="field">
+          <label for="fAantallen">Aantallen verwacht</label>
+          <textarea id="fAantallen" rows="2" placeholder="Bijv. 500 m³"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="kleuren-sticky-head">
+          <div class="result-head">
+            <h2>Componenten</h2>
+            <span class="result-count" id="editTotalPct"></span>
+          </div>
+          <p class="sub">Vaste volgorde, zoals in de matrix. Grondstoffen in %, samen 100%. Bemesting en instellingen als waarde.</p>
+          <div class="fixed-color-head"><span>Component</span><span>Opm.</span><span>Hoeveel</span><span>Code</span></div>
+        </div>
+        <div id="editFixedColorRows"></div>
+
+        <p class="subhead">Overige component (eenmalig, niet in de lijst)</p>
+        <div id="editColorRows"></div>
+        <button type="button" class="btn-add" id="addColorRowBtn">+ Andere component toevoegen</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary btn-copy-year" id="newVersionBtn" style="display:none">Nieuwe versie (zelfde jaar)</button>
+        <button type="button" class="btn-secondary btn-copy-year" id="copyYearBtn" style="display:none">Kopie naar nieuw jaar</button>
+      </div>
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary" id="cancelBtn">Annuleren</button>
+        <button type="button" class="btn-danger" id="deleteBtn" style="display:none">Verwijderen</button>
+        <button type="button" class="btn-primary" id="saveBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="compOverlay" style="display:none">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-head">
+      <h2>Componenten beheren</h2>
+      <button type="button" class="modal-close" id="compClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <p class="sub">Voeg toe, pas aan of zet in een andere volgorde. Een nieuwe naam wordt ook in de bestaande mengsels aangepast.</p>
+        <div class="comp-head"><span>Naam</span><span>Soort</span><span>Eenheid</span><span></span></div>
+        <div id="compRows"></div>
+        <button type="button" class="btn-add" id="compAddBtn">+ Component toevoegen</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary" id="compCancelBtn">Annuleren</button>
+        <button type="button" class="btn-primary" id="compSaveBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Gegevens staan in Firebase (potgrond/data). In deze browser staat een reservekopie.
+  const STORAGE_KEY = 'potgrond-recepten-data';
+  let currentUserNaam = '';
+
+  // Startgegevens: leeg. Nieuwe mengsels maak je aan via "+ Mengsel aanmaken".
+  /*DATA_START*/let DATA = [];/*DATA_END*/
+
+  // Speciale klant zonder percentages (alleen code). Blijft werken als je
+  // een klant "Op kleur" noemt; verder heeft dit geen effect.
+  const OP_KLEUR_KLANT = 'Op kleur';
+  function isOpKleurGrower(naam) {
+    return (naam || '').trim().toLowerCase() === OP_KLEUR_KLANT.toLowerCase();
+  }
+
+  // Standaard componenten (met eenheid). Aan te passen via "Componenten beheren".
+  const COMP_KEY = 'potgrond-componenten';
+  const EENHEDEN = ['m3', 'Kg', 'L', 'g', 'stuks', '%', 'stand', 'min', 'sec', '°C'];
+  const DEFAULT_COMPONENTS = [
+    { n: "Houtvezel middel", e: "m3", t: "grondstof" },
+    { n: "Houtvezel fijn", e: "m3", t: "grondstof" },
+    { n: "Kokosvezel mix", e: "m3", t: "grondstof" },
+    { n: "Cocosgruis", e: "m3", t: "grondstof" },
+    { n: "Litouwse tuinturf vezelig", e: "m3", t: "grondstof" },
+    { n: "Bark 5-8 mm", e: "m3", t: "grondstof" },
+    { n: "Veen Fractie 0", e: "m3", t: "grondstof" },
+    { n: "Veen Fractie 1", e: "m3", t: "grondstof" },
+    { n: "Iers Freesturf middel", e: "m3", t: "grondstof" },
+    { n: "Perliet grof", e: "m3", t: "grondstof" },
+    { n: "Bark Middel", e: "Kg", t: "grondstof" },
+    { n: "Compost", e: "Kg", t: "grondstof" },
+    { n: "Water Doseertrommel", e: "L", t: "bemesting" },
+    { n: "Kalk 5% MGO", e: "Kg", t: "bemesting" },
+    { n: "Klei 1-4mm", e: "Kg", t: "bemesting" },
+    { n: "NPK 12-14-24", e: "Kg", t: "bemesting" },
+    { n: "Crotodur 31%", e: "Kg", t: "bemesting" },
+    { n: "Micromax", e: "Kg", t: "bemesting" },
+    { n: "Vivisol minigram", e: "Kg", t: "bemesting" },
+    { n: "Eifengold", e: "Kg", t: "bemesting" },
+    { n: "pH", e: "Kg", t: "bemesting" },
+    { n: "kalksalpeter", e: "Kg", t: "bemesting" }
+  ];
+
+  let COMPONENTS = DEFAULT_COMPONENTS.slice();
+  try {
+    const rawC = localStorage.getItem(COMP_KEY);
+    if (rawC) { const pc = JSON.parse(rawC); if (Array.isArray(pc) && pc.length) COMPONENTS = pc; }
+  } catch (e) { /* standaardlijst gebruiken */ }
+  // Oudere lijsten hebben nog geen soort: aanvullen.
+  COMPONENTS.forEach(c => {
+    if (!['grondstof', 'bemesting', 'instelling'].includes(c.t)) {
+      const def = DEFAULT_COMPONENTS.find(d => d.n === c.n);
+      c.t = def ? def.t : (c.e === 'm3' ? 'grondstof' : 'bemesting');
+    }
+  });
+  // Volgorde: eerst alle grondstoffen, dan bemesting.
+  function ordeNamen() {
+    return ['grondstof', 'bemesting', 'instelling'].flatMap(t => COMPONENTS.filter(c => c.t === t)).map(c => c.n);
+  }
+  let MASTER_COLORS = ordeNamen();
+  function typeVan(naam) {
+    const c = COMPONENTS.find(x => x.n === naam);
+    return c ? c.t : '';
+  }
+  function eenheidVan(naam) {
+    const c = COMPONENTS.find(x => x.n === naam);
+    if (!c) return '';
+    return c.t === 'grondstof' ? '%' : c.e;
+  }
+  function saveComponents() {
+    MASTER_COLORS = ordeNamen();
+    MASTER_COLORS_LC = MASTER_COLORS.map(c => c.toLowerCase());
+    try { localStorage.setItem(COMP_KEY, JSON.stringify(COMPONENTS)); } catch (e) {}
+    syncToFirestore();
+  }
+  // Groepen (zoals vroeger Rood/Wit/Licht/Donker). Nu nog niet in gebruik.
+  const MASTER_COLOR_CATEGORY = {};
+
+  // ---------- Inloggen & gezamenlijke data (Firebase) ----------
+  function showSaveToast(msg, isError) {
+    const el = document.getElementById('saveToast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.toggle('error', !!isError);
+    el.classList.add('show');
+    clearTimeout(showSaveToast._t);
+    showSaveToast._t = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function downloadBackup() {
+    try {
+      const blob = new Blob([JSON.stringify({ mengsels: DATA, componenten: COMPONENTS }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'potgrond-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showSaveToast('Backup gedownload ✓', false);
+    } catch (e) {
+      showSaveToast('Backup mislukt, probeer opnieuw', true);
+    }
+  }
+
+  function downloadCsv() {
+    try {
+      const headers = ['Klant', 'Mengsel', 'Jaar', 'Aanvraag', 'Bevestigd']
+        .concat(MASTER_COLORS.map(n => n + ' (' + eenheidVan(n) + ')'))
+        .concat(['Overige componenten']);
+      const csvEscape = (val) => {
+        const s = val === null || val === undefined ? '' : String(val);
+        if (/[;"\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+      };
+      const fmtNum = (v) => (v === null || v === undefined || v === '') ? '' : String(v).replace('.', ',');
+      const rows = DATA.map(rec => {
+        const colorMap = {};
+        const extra = [];
+        (rec.colors || []).forEach(([n, p]) => {
+          if (MASTER_COLORS.includes(n)) colorMap[n] = p;
+          else extra.push(n + ': ' + fmtNum(p));
+        });
+        const row = [rec.grower || '', rec.ras || '', rec.laatste_wijziging || '', rec.aanvraag || '', rec.bevestigd || '']
+          .concat(MASTER_COLORS.map(c => fmtNum(colorMap[c])))
+          .concat([extra.join(', ')]);
+        return row.map(csvEscape).join(';');
+      });
+      const csvContent = '\uFEFF' + [headers.map(csvEscape).join(';')].concat(rows).join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'potgrond-' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showSaveToast('CSV gedownload ✓', false);
+    } catch (e) {
+      showSaveToast('CSV export mislukt, probeer opnieuw', true);
+    }
+  }
+
+  // ---------- Firebase ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyB5-YuuP_r7DcXIZ91av_e3l3qfTfR-9cw",
+    authDomain: "potgrond-4cb06.firebaseapp.com",
+    projectId: "potgrond-4cb06",
+    storageBucket: "potgrond-4cb06.firebasestorage.app",
+    messagingSenderId: "149981819139",
+    appId: "1:149981819139:web:209396c4d7b7ebfbfdb936"
+  };
+  const FB_VERSIE = '10.13.2';
+  let fb = null;              // geladen Firebase-functies
+  let auth = null, db = null, recepteDocRef = null;
+  let firestoreReady = false;
+  let unsubscribeData = null;
+
+  function setSyncDot(ok, tekst) {
+    const dot = document.getElementById('syncDot');
+    if (!dot) return;
+    dot.classList.toggle('offline', !ok);
+    dot.title = tekst;
+  }
+
+  // Firestore kan geen lijst-in-lijst opslaan, dus omzetten naar objecten.
+  function encodeForFirestore(data) {
+    return (data || []).map(rec => {
+      const out = { ...rec,
+        colors: (rec.colors || []).map(c => ({ n: c[0], p: c[1], s: c[2] != null ? c[2] : null, o: c[3] != null ? c[3] : null })),
+        submix: (rec.submix || []).map(c => ({ n: c[0], p: c[1] }))
+      };
+      Object.keys(out).forEach(k => { if (out[k] === undefined) out[k] = null; });
+      return out;
+    });
+  }
+  function decodeFromFirestore(items) {
+    return (items || []).map(rec => ({
+      ...rec,
+      colors: (rec.colors || []).map(c => [c.n, c.p, c.s != null ? c.s : null, c.o != null ? c.o : null]),
+      submix: (rec.submix || []).map(c => [c.n, c.p])
+    }));
+  }
+
+  function bewaarLokaal() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); } catch (e) { /* geen probleem */ }
+  }
+
+  async function syncToFirestore() {
+    bewaarLokaal();
+    if (!firestoreReady) { setSyncDot(false, 'Niet verbonden — alleen lokaal bewaard'); return false; }
+    try {
+      await fb.setDoc(recepteDocRef, { items: encodeForFirestore(DATA), componenten: COMPONENTS });
+      setSyncDot(true, 'Opgeslagen in Firebase');
+      return true;
+    } catch (e) {
+      console.error('Opslaan mislukt:', e);
+      const code = (e && (e.code || e.message)) || 'onbekende fout';
+      showSaveToast('Opslaan mislukt: ' + code, true);
+      setSyncDot(false, 'Niet opgeslagen: ' + code);
+      return false;
+    }
+  }
+
+  function loadLocalData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) DATA = parsed;
+      }
+    } catch (e) { /* geen lokale data */ }
+  }
+
+  function pasComponentenToe(lijst) {
+    if (!Array.isArray(lijst) || !lijst.length) return;
+    COMPONENTS = lijst;
+    MASTER_COLORS = ordeNamen();
+    MASTER_COLORS_LC = MASTER_COLORS.map(c => c.toLowerCase());
+    try { localStorage.setItem(COMP_KEY, JSON.stringify(COMPONENTS)); } catch (e) {}
+    buildFixedColorRows();
+  }
+
+  function startSharedDataSync() {
+    if (unsubscribeData) return;
+    unsubscribeData = fb.onSnapshot(recepteDocRef, { includeMetadataChanges: false }, (snap) => {
+      if (snap.exists()) {
+        const d = snap.data();
+        DATA = decodeFromFirestore(d.items);
+        zorgVoorIds();
+        if (d.componenten) pasComponentenToe(d.componenten);
+        bewaarLokaal();
+        setSyncDot(true, snap.metadata.fromCache ? 'Offline (uit cache)' : 'Verbonden');
+        buildMatrix();
+      } else if (!snap.metadata.fromCache) {
+        // Nog niets in Firebase: lokale gegevens eenmalig overzetten.
+        if (DATA.length) {
+          showSaveToast('Lokale gegevens worden naar Firebase overgezet…', false);
+          syncToFirestore().then(ok => { if (ok) showSaveToast(DATA.length + ' mengsels overgezet naar Firebase ✓', false); });
+        } else {
+          syncToFirestore();
+        }
+        buildMatrix();
+      }
+    }, (err) => {
+      console.error('onSnapshot mislukt:', err);
+      const code = (err && (err.code || err.message)) || '?';
+      setSyncDot(false, 'Geen verbinding: ' + code);
+      if (code === 'permission-denied') {
+        showSaveToast('Geen rechten in Firebase voor potgrond/data. Pas de Firestore-regels aan.', true);
+      } else {
+        showSaveToast('Verbinding met Firebase verbroken: ' + code, true);
+      }
+    });
+  }
+
+  function stopSharedDataSync() {
+    if (unsubscribeData) { unsubscribeData(); unsubscribeData = null; }
+    firestoreReady = false;
+  }
+
+  function showAuthState(state, email, tekst) {
+    document.getElementById('authLoading').style.display = state === 'loading' ? '' : 'none';
+    document.getElementById('authSignedOut').style.display = state === 'signedOut' ? '' : 'none';
+    document.getElementById('authDenied').style.display = state === 'denied' ? '' : 'none';
+    document.getElementById('authOverlay').style.display = state === 'ok' ? 'none' : 'flex';
+    document.getElementById('appRoot').style.display = state === 'ok' ? '' : 'none';
+    if (state === 'denied') {
+      document.getElementById('authDeniedEmail').textContent = email || '';
+      document.getElementById('authDeniedText').textContent = tekst ||
+        'Dit account heeft geen toegang. Vraag om toegevoegd te worden, of log in met een ander account.';
+    }
+  }
+
+  function inlogFoutTekst(e) {
+    const code = (e && e.code) || 'onbekend';
+    if (location.protocol === 'file:' || code === 'auth/operation-not-supported-in-this-environment')
+      return 'Inloggen werkt niet vanaf een los bestand op je pc. Zet de pagina online.';
+    if (code === 'auth/unauthorized-domain')
+      return 'Dit adres (' + location.hostname + ') staat niet in Firebase bij Authentication → Settings → Authorized domains.';
+    if (code === 'auth/popup-blocked') return 'Pop-up geblokkeerd. Sta pop-ups toe voor deze site.';
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return '';
+    return 'Inloggen mislukt (' + code + ').';
+  }
+
+  async function startFirebase() {
+    try {
+      const [appM, authM, fsM] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/' + FB_VERSIE + '/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/' + FB_VERSIE + '/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/' + FB_VERSIE + '/firebase-firestore.js')
+      ]);
+      fb = { ...authM, ...fsM };
+      const app = appM.initializeApp(firebaseConfig);
+      auth = authM.getAuth(app);
+      try {
+        db = fsM.initializeFirestore(app, { localCache: fsM.persistentLocalCache({ tabManager: fsM.persistentSingleTabManager() }) });
+      } catch (e) {
+        db = fsM.getFirestore(app);
+      }
+      recepteDocRef = fsM.doc(db, 'potgrond', 'data');
+    } catch (e) {
+      console.error('Firebase laden mislukt:', e);
+      showAuthState('denied', '', 'Firebase kon niet geladen worden. Controleer je internetverbinding en ververs de pagina.');
+      return;
+    }
+
+    const provider = new fb.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    document.getElementById('googleSignInBtn').addEventListener('click', () => {
+      fb.signInWithPopup(auth, provider).catch(e => {
+        const t = inlogFoutTekst(e);
+        if (t) alert(t);
+      });
+    });
+    document.getElementById('logoutBtn').addEventListener('click', () => fb.signOut(auth));
+    document.getElementById('authDeniedLogoutBtn').addEventListener('click', () => fb.signOut(auth));
+
+    fb.onAuthStateChanged(auth, async (user) => {
+      stopSharedDataSync();
+      if (!user) { showAuthState('signedOut'); return; }
+      showAuthState('loading');
+      const email = (user.email || '').toLowerCase();
+      try {
+        const editorSnap = await fb.getDoc(fb.doc(db, 'editors', email));
+        if (!editorSnap.exists()) { showAuthState('denied', email); return; }
+        const editorData = editorSnap.data() || {};
+        currentUserNaam = editorData.naam || email;
+      } catch (e) {
+        showAuthState('denied', email, 'Toegang controleren mislukt (' + ((e && e.code) || '?') + ').');
+        return;
+      }
+      document.getElementById('userEmail').textContent = email;
+      firestoreReady = true;
+      showAuthState('ok');
+      startSharedDataSync();
+    });
+  }
+
+  function importBackup(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const mengsels = Array.isArray(parsed) ? parsed : parsed && parsed.mengsels;
+        if (!Array.isArray(mengsels)) throw new Error('geen lijst');
+        if (!confirm('Alle huidige gegevens vervangen door deze backup (' + mengsels.length + ' mengsels)?')) return;
+        DATA = mengsels;
+        zorgVoorIds();
+        if (parsed.componenten && Array.isArray(parsed.componenten)) { COMPONENTS = parsed.componenten; saveComponents(); buildFixedColorRows(); }
+        syncToFirestore();
+        buildMatrix();
+        showSaveToast('Backup teruggezet ✓', false);
+      } catch (e) {
+        showSaveToast('Dit is geen geldige backup', true);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  let showSubnummers = false;
+
+  function fmtMatrixPct(v) {
+    const rounded = Math.round(v * 100) / 100;
+    return String(rounded).replace('.', ',');
+  }
+  function hasDecimal(v) { return Math.abs(v - Math.round(v)) > 0.001; }
+  function columnTotal(col) {
+    return (col.colors || []).reduce((sum, c) => sum + (typeVan(c[0]) === 'grondstof' && typeof c[1] === 'number' ? c[1] : 0), 0);
+  }
+  function heeftGrondstof(col) {
+    return (col.colors || []).some(c => typeVan(c[0]) === 'grondstof');
+  }
+
+  // Jaar van een mengsel: veld Jaar, anders jaar van Bevestigd, anders van Aanvraag.
+  function jaarVan(col) {
+    if (col.laatste_wijziging) return String(col.laatste_wijziging);
+    for (const d of [col.bevestigd, col.aanvraag]) {
+      const m = /(\d{4})$/.exec(d || '');
+      if (m) return m[1];
+    }
+    return '';
+  }
+
+  function nieuwId() {
+    return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function zorgVoorIds() {
+    DATA.forEach(d => { if (!d.id) d.id = nieuwId(); });
+  }
+  // Datum (bevestigd, anders aanvraag) als jjjj-mm-dd, om versies te sorteren.
+  function sorteerDatum(col) {
+    for (const d of [col.bevestigd, col.aanvraag]) {
+      const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(d || '');
+      if (m) return m[3] + '-' + m[2] + '-' + m[1];
+    }
+    return jaarVan(col) || '';
+  }
+
+  function getGrowers() { return [...new Set(DATA.map(d => d.grower))]; }
+
+  function groupByKlant(data) {
+    const sorted = [...data].sort((a, b) => {
+      const opt = { sensitivity: 'base', numeric: true };
+      const g = (a.grower || '').localeCompare(b.grower || '', 'nl', opt);
+      if (g !== 0) return g;
+      const r = (a.ras || '').localeCompare(b.ras || '', 'nl', opt);
+      if (r !== 0) return r;
+      return sorteerDatum(b).localeCompare(sorteerDatum(a)); // nieuwste eerst
+    });
+    const map = new Map();
+    sorted.forEach(col => {
+      if (!map.has(col.grower)) map.set(col.grower, []);
+      map.get(col.grower).push(col);
+    });
+    return map;
+  }
+
+  function extraColorsInOrder(data) {
+    const known = new Set(MASTER_COLORS);
+    const extra = new Set();
+    data.forEach(col => col.colors.forEach(([naam]) => { if (!known.has(naam)) extra.add(naam); }));
+    return Array.from(extra).sort();
+  }
+
+  function filteredDataForMatrix() {
+    return DATA.filter(col =>
+      (selKlant.size ? selKlant.has(col.grower) : !isOpKleurGrower(col.grower)) &&
+      (!selJaar.size || selJaar.has(jaarVan(col))) &&
+      (!selSerie.size || selSerie.has(col.ras))
+    );
+  }
+
+  let jaarFilterInitialized = false;
+  const selJaar = new Set();
+  const selKlant = new Set();
+  const selSerie = new Set();
+
+  function multiSelectLabel(sel, allLabel) {
+    if (!sel.size) return allLabel;
+    if (sel.size === 1) return [...sel][0];
+    return sel.size + ' geselecteerd';
+  }
+  function updateMultiSelectUI(btnId, sel, allLabel) {
+    document.getElementById(btnId).querySelector('.ms-label').textContent = multiSelectLabel(sel, allLabel);
+  }
+
+  function renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel) {
+    const dropdown = document.getElementById(dropdownId);
+    if (!options.length) {
+      dropdown.innerHTML = '<p class="multi-select-empty">Geen opties beschikbaar.</p>';
+      updateMultiSelectUI(btnId, sel, allLabel);
+      return;
+    }
+    let html = options.map(o => {
+      const checked = sel.has(o) ? ' checked' : '';
+      return '<label class="multi-select-item"><input type="checkbox" class="ms-checkbox" value="' + escapeAttr(o) + '"' + checked + '> ' + o + '</label>';
+    }).join('');
+    html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">Selectie wissen</button></div>';
+    dropdown.innerHTML = html;
+
+    dropdown.querySelectorAll('.ms-checkbox').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) sel.add(cb.value); else sel.delete(cb.value);
+        updateMultiSelectUI(btnId, sel, allLabel);
+        buildMatrix();
+      });
+    });
+    const wisBtn = dropdown.querySelector('.ms-clear-btn');
+    if (wisBtn) {
+      wisBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sel.clear();
+        renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel);
+        buildMatrix();
+      });
+    }
+    updateMultiSelectUI(btnId, sel, allLabel);
+  }
+
+  function fillFilterOptions() {
+    const jaren = [...new Set(DATA.map(d => jaarVan(d)).filter(Boolean))].sort((a, b) => b.localeCompare(a));
+    const klanten = [...new Set(DATA.map(d => d.grower))].sort((a, b) => a.localeCompare(b));
+    const series = [...new Set(DATA.map(d => d.ras))].sort((a, b) => a.localeCompare(b));
+
+    if (!jaarFilterInitialized && jaren.length) {
+      const ditJaar = String(new Date().getFullYear());
+      if (jaren.includes(ditJaar)) selJaar.add(ditJaar);
+      jaarFilterInitialized = true;
+    }
+
+    const jarenSet = new Set(jaren);
+    selJaar.forEach(j => { if (!jarenSet.has(j)) selJaar.delete(j); });
+    const klantenSet = new Set(klanten);
+    selKlant.forEach(k => { if (!klantenSet.has(k)) selKlant.delete(k); });
+    const seriesSet = new Set(series);
+    selSerie.forEach(s => { if (!seriesSet.has(s)) selSerie.delete(s); });
+
+    renderMultiSelectPanel('jaarSelectDropdown', 'jaarSelectBtn', jaren, selJaar, 'Alle jaren');
+    renderMultiSelectPanel('klantSelectDropdown', 'klantSelectBtn', klanten, selKlant, 'Alle klanten');
+    renderMultiSelectPanel('serieSelectDropdown', 'serieSelectBtn', series, selSerie, 'Alle mengsels');
+  }
+
+  function buildMatrix() {
+    fillFilterOptions();
+    const filtered = filteredDataForMatrix();
+    const groups = groupByKlant(filtered);
+
+    const usedColors = new Set();
+    filtered.forEach(col => col.colors.forEach(([naam]) => usedColors.add(naam)));
+    const rows = MASTER_COLORS.concat(extraColorsInOrder(filtered)).filter(k => usedColors.has(k));
+
+    document.getElementById('headerStats').textContent =
+      groups.size + ' klanten · ' + rows.length + ' componenten · ' + filtered.length + ' mengsels';
+
+    const table = document.getElementById('matrixTable');
+    table.innerHTML = '';
+    const oldEmpty = table.parentElement.querySelector('.empty-note');
+    if (oldEmpty) oldEmpty.remove();
+
+    if (!filtered.length) {
+      const emptyRow = document.createElement('p');
+      emptyRow.className = 'empty-note';
+      emptyRow.textContent = DATA.length
+        ? 'Geen mengsel gevonden voor dit filter.'
+        : 'Nog geen mengsels. Klik op "+ Mengsel aanmaken" om te beginnen.';
+      table.parentElement.appendChild(emptyRow);
+      return;
+    }
+
+    const thead = document.createElement('thead');
+    const klantRow = document.createElement('tr');
+    klantRow.className = 'klant-row';
+    let klantHtml = '<th class="corner" rowspan="3"></th>';
+    groups.forEach((cols, klant) => { klantHtml += '<th colspan="' + cols.length + '">' + klant + '</th>'; });
+    klantRow.innerHTML = klantHtml;
+    thead.appendChild(klantRow);
+
+    const serieRow = document.createElement('tr');
+    serieRow.className = 'serie-row';
+    let serieHtml = '';
+    groups.forEach(cols => {
+      cols.forEach(col => {
+        const total = columnTotal(col);
+        const notHundred = !isOpKleurGrower(col.grower) && heeftGrondstof(col) && Math.abs(total - 100) > 0.05;
+        const cls = 'clickable' + (notHundred ? ' not-hundred' : '');
+        const title = notHundred
+          ? 'Grondstoffen: ' + total.toFixed(1).replace('.', ',') + '% (geen 100%) — klik om te bewerken'
+          : 'Klik om te bewerken';
+        const fullTitle = col.ras + (jaarVan(col) ? ' (' + jaarVan(col) + ')' : '') + ' — ' + title;
+        const notitieIcon = col.notitie ? ' <span class="notitie-icon" title="' + escapeAttr(col.notitie) + '">&#128221;</span>' : '';
+        serieHtml += '<th class="' + cls + '" data-id="' + escapeAttr(col.id) + '" title="' + escapeAttr(fullTitle) + '">' + col.ras + notitieIcon + '</th>';
+      });
+    });
+    serieRow.innerHTML = serieHtml;
+    thead.appendChild(serieRow);
+
+    const jaarRow = document.createElement('tr');
+    jaarRow.className = 'jaar-row';
+    let jaarHtml = '';
+    groups.forEach(cols => {
+      cols.forEach(col => {
+        const jaar = jaarVan(col);
+        const bevestigdTitle = (jaar ? 'Jaar ' + jaar + ' · ' : '') + 'Bevestigd: ' + col.bevestigd + (col.bevestigd_door ? ' door ' + col.bevestigd_door : '');
+        const kortDatum = col.bevestigd ? String(col.bevestigd).replace(/^(\d{2})-(\d{2})-\d{2}(\d{2})$/, '$1-$2-$3') : '';
+        const checkHtml = col.bevestigd ? '<span class="jaar-check">&#10003;</span><span class="bev-datum">' + escapeAttr(kortDatum) + '</span>' : '<span title="Nog niet bevestigd">–</span>';
+        const cellTitle = col.bevestigd ? bevestigdTitle : (jaar ? 'Jaar ' + jaar + ' · ' : '') + 'Nog niet bevestigd';
+        jaarHtml += '<th class="jaar-cell" title="' + escapeAttr(cellTitle) + '">' + checkHtml + '</th>';
+      });
+    });
+    jaarRow.innerHTML = jaarHtml;
+    thead.appendChild(jaarRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const allCols = [];
+    groups.forEach(cols => cols.forEach(c => allCols.push(c)));
+
+    function maakRij(kleur) {
+      const tr = document.createElement('tr');
+      const soort = typeVan(kleur);
+      const eh = soort && soort !== 'grondstof' ? eenheidVan(kleur) : '';
+      let rowHtml = '<th>' + kleur + (eh ? ' <span class="eenheid">(' + escapeAttr(eh) + ')</span>' : '') + '</th>';
+      allCols.forEach(col => {
+        const found = col.colors.find(([n]) => n === kleur);
+        if (isOpKleurGrower(col.grower)) {
+          const subVal = found && found[2] ? String(found[2]) : null;
+          rowHtml += subVal ? '<td class="filled"><span class="cell-sub-only">(' + escapeAttr(subVal) + ')</span></td>' : '<td class="empty">–</td>';
+        } else if (found) {
+          const waarde = fmtMatrixPct(found[1]) + (soort === 'grondstof' ? '%' : '');
+          const opm = found[3];
+          const opmCls = opm ? ' has-opm' : '';
+          const titleAttr = opm ? ' title="' + escapeAttr(opm) + '"' : '';
+          let cellContent = waarde;
+          let subLayoutCls = '';
+          if (showSubnummers) {
+            subLayoutCls = ' has-sub-layout';
+            const subInner = found[2] ? '(' + escapeAttr(String(found[2])) + ')' : '';
+            cellContent = '<span class="cell-inner"><span class="cell-val">' + waarde + '</span><span class="cell-subwrap"><span class="cell-sub">' + subInner + '</span></span></span>';
+          }
+          rowHtml += '<td class="filled' + opmCls + subLayoutCls + '"' + titleAttr + '>' + cellContent + '</td>';
+        } else {
+          rowHtml += '<td class="empty">–</td>';
+        }
+      });
+      tr.innerHTML = rowHtml;
+      return tr;
+    }
+
+    const secties = [
+      { titel: 'Grondstoffen (%)', namen: rows.filter(k => typeVan(k) === 'grondstof'), totaal: true },
+      { titel: 'Bemesting', namen: rows.filter(k => typeVan(k) === 'bemesting') },
+      { titel: 'Instellingen', namen: rows.filter(k => typeVan(k) === 'instelling') },
+      { titel: 'Overig', namen: rows.filter(k => !typeVan(k)) }
+    ];
+    secties.forEach(sec => {
+      if (!sec.namen.length) return;
+      const hr = document.createElement('tr');
+      hr.className = 'sec-row';
+      hr.innerHTML = '<th>' + sec.titel + '</th><td colspan="' + allCols.length + '"></td>';
+      tbody.appendChild(hr);
+      sec.namen.forEach(k => tbody.appendChild(maakRij(k)));
+      if (sec.totaal) {
+        const tr = document.createElement('tr');
+        tr.className = 'tot-row';
+        let h = '<th>Totaal grondstoffen</th>';
+        allCols.forEach(col => {
+          if (isOpKleurGrower(col.grower) || !heeftGrondstof(col)) { h += '<td class="empty">–</td>'; return; }
+          const t = columnTotal(col);
+          const fout = Math.abs(t - 100) > 0.05;
+          h += '<td class="' + (fout ? 'fout' : '') + '"' + (fout ? ' title="Niet 100%"' : '') + '>' + fmtMatrixPct(t) + '%' + (fout ? ' &#9888;' : '') + '</td>';
+        });
+        tr.innerHTML = h;
+        tbody.appendChild(tr);
+      }
+    });
+    table.appendChild(tbody);
+  }
+
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  document.getElementById('clearFilterBtn').addEventListener('click', () => {
+    selJaar.clear(); selKlant.clear(); selSerie.clear();
+    buildMatrix();
+  });
+
+  const jaarSelectWrap = document.getElementById('jaarSelectWrap');
+  const klantSelectWrap = document.getElementById('klantSelectWrap');
+  const serieSelectWrap = document.getElementById('serieSelectWrap');
+  const multiSelectWraps = [jaarSelectWrap, klantSelectWrap, serieSelectWrap];
+
+  function wireMultiSelectToggle(wrap, btnId) {
+    document.getElementById(btnId).addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = wrap.classList.contains('open');
+      multiSelectWraps.forEach(w => w.classList.remove('open'));
+      if (!wasOpen) wrap.classList.add('open');
+    });
+  }
+  wireMultiSelectToggle(jaarSelectWrap, 'jaarSelectBtn');
+  wireMultiSelectToggle(klantSelectWrap, 'klantSelectBtn');
+  wireMultiSelectToggle(serieSelectWrap, 'serieSelectBtn');
+  document.addEventListener('click', (e) => {
+    multiSelectWraps.forEach(w => {
+      if (w.classList.contains('open') && !w.contains(e.target)) w.classList.remove('open');
+    });
+  });
+
+  const appRootEl = document.getElementById('appRoot');
+  const mobileChromeToggle = document.getElementById('mobileChromeToggle');
+  if (window.matchMedia('(max-width: 640px)').matches) appRootEl.classList.add('chrome-collapsed');
+  function updateMobileChromeToggleLabel() {
+    mobileChromeToggle.innerHTML = appRootEl.classList.contains('chrome-collapsed') ? '&#9776; Menu' : '&#10005; Menu verbergen';
+  }
+  updateMobileChromeToggleLabel();
+  mobileChromeToggle.addEventListener('click', () => {
+    appRootEl.classList.toggle('chrome-collapsed');
+    updateMobileChromeToggleLabel();
+  });
+
+  const exportMenu = document.getElementById('exportMenu');
+  document.getElementById('exportMenuBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportMenu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (exportMenu.classList.contains('open') && !exportMenu.contains(e.target)) exportMenu.classList.remove('open');
+  });
+
+  document.getElementById('printBtn').addEventListener('click', () => {
+    exportMenu.classList.remove('open');
+    if (!selKlant.size && !selSerie.size) {
+      alert('Filter eerst op Klant en/of Mengsel voor je print. Printen van de volledige matrix is niet toegestaan.');
+      return;
+    }
+    window.print();
+  });
+  document.getElementById('exportBtn').addEventListener('click', () => { exportMenu.classList.remove('open'); downloadBackup(); });
+  document.getElementById('importBtn').addEventListener('click', () => {
+    exportMenu.classList.remove('open');
+    document.getElementById('importFile').click();
+  });
+  document.getElementById('importFile').addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) importBackup(f);
+    e.target.value = '';
+  });
+  document.getElementById('csvBtn').addEventListener('click', () => { exportMenu.classList.remove('open'); downloadCsv(); });
+
+  const subnumBtn = document.getElementById('subnumBtn');
+  subnumBtn.addEventListener('click', () => {
+    showSubnummers = !showSubnummers;
+    subnumBtn.textContent = showSubnummers ? 'Ja' : 'Nee';
+    subnumBtn.dataset.value = showSubnummers ? 'ja' : 'nee';
+    subnumBtn.classList.toggle('on', showSubnummers);
+    buildMatrix();
+  });
+
+  // ---------- Componenten beheren ----------
+  const compOverlay = document.getElementById('compOverlay');
+  const compRowsEl = document.getElementById('compRows');
+
+  function compRowHtml(c) {
+    const isG = c.t === 'grondstof';
+    const opties = EENHEDEN.concat(EENHEDEN.includes(c.e) || !c.e ? [] : [c.e])
+      .map(e => '<option' + ((isG ? '%' : c.e) === e ? ' selected' : '') + '>' + escapeAttr(e) + '</option>').join('');
+    return '<input type="text" class="comp-name" placeholder="Naam" value="' + escapeAttr(c.n) + '">' +
+      '<select class="comp-type"><option value="grondstof"' + (isG ? ' selected' : '') + '>Grondstof</option><option value="bemesting"' + (c.t === 'bemesting' ? ' selected' : '') + '>Bemesting</option>' +
+      '<option value="instelling"' + (c.t === 'instelling' ? ' selected' : '') + '>Instelling</option></select>' +
+      '<select class="comp-unit"' + (isG ? ' disabled' : '') + '>' + opties + '</select>' +
+      '<button type="button" class="comp-move" data-dir="-1" title="Omhoog">&#9650;</button>' +
+      '<button type="button" class="comp-move" data-dir="1" title="Omlaag">&#9660;</button>' +
+      '<button type="button" class="ce-remove" title="Verwijderen">&#10005;</button>';
+  }
+  function addCompRow(c) {
+    const row = document.createElement('div');
+    row.className = 'comp-row';
+    row.dataset.orig = c.n || '';
+    row.innerHTML = compRowHtml(c);
+    row.dataset.eenheid = c.e && c.e !== '%' ? c.e : 'Kg';
+    const typeSel = row.querySelector('.comp-type');
+    const unitSel = row.querySelector('.comp-unit');
+    unitSel.addEventListener('change', () => { if (unitSel.value !== '%') row.dataset.eenheid = unitSel.value; });
+    typeSel.addEventListener('change', () => {
+      if (typeSel.value === 'grondstof') { unitSel.value = '%'; unitSel.disabled = true; }
+      else { unitSel.disabled = false; unitSel.value = row.dataset.eenheid; }
+    });
+    row.querySelector('.ce-remove').addEventListener('click', () => {
+      const naam = row.dataset.orig;
+      const gebruikt = naam && DATA.some(d => (d.colors || []).some(x => x[0] === naam));
+      if (gebruikt && !confirm('"' + naam + '" wordt gebruikt in mengsels. Toch uit de lijst halen? (In die mengsels blijft hij als "overige" staan.)')) return;
+      row.remove();
+    });
+    row.querySelectorAll('.comp-move').forEach(btn => btn.addEventListener('click', () => {
+      if (btn.dataset.dir === '-1' && row.previousElementSibling) compRowsEl.insertBefore(row, row.previousElementSibling);
+      if (btn.dataset.dir === '1' && row.nextElementSibling) compRowsEl.insertBefore(row.nextElementSibling, row);
+    }));
+    compRowsEl.appendChild(row);
+    return row;
+  }
+  function openCompModal() {
+    exportMenu.classList.remove('open');
+    compRowsEl.innerHTML = '';
+    COMPONENTS.forEach(c => addCompRow(c));
+    compOverlay.style.display = 'flex';
+  }
+  function closeCompModal() { compOverlay.style.display = 'none'; }
+
+  document.getElementById('compBtn').addEventListener('click', openCompModal);
+  document.getElementById('compBtn2').addEventListener('click', openCompModal);
+  document.getElementById('compClose').addEventListener('click', closeCompModal);
+  document.getElementById('compCancelBtn').addEventListener('click', closeCompModal);
+  compOverlay.addEventListener('click', (e) => { if (e.target === compOverlay) closeCompModal(); });
+  document.getElementById('compAddBtn').addEventListener('click', () => {
+    const row = addCompRow({ n: '', e: 'Kg', t: 'bemesting' });
+    row.querySelector('.comp-name').focus();
+  });
+
+  document.getElementById('compSaveBtn').addEventListener('click', () => {
+    const rows = [...compRowsEl.querySelectorAll('.comp-row')];
+    const nieuw = [];
+    const namen = new Set();
+    for (const r of rows) {
+      const n = r.querySelector('.comp-name').value.trim();
+      if (!n) continue;
+      if (namen.has(n.toLowerCase())) { alert('"' + n + '" staat er twee keer in.'); return; }
+      namen.add(n.toLowerCase());
+      const t = r.querySelector('.comp-type').value;
+      nieuw.push({ n, t, e: t === 'grondstof' ? (r.dataset.eenheid || 'm3') : r.querySelector('.comp-unit').value, orig: r.dataset.orig });
+    }
+    // Hernoemde componenten ook in bestaande mengsels aanpassen
+    let hernoemd = 0;
+    nieuw.forEach(c => {
+      if (c.orig && c.orig !== c.n) {
+        DATA.forEach(d => (d.colors || []).forEach(x => { if (x[0] === c.orig) { x[0] = c.n; hernoemd++; } }));
+      }
+    });
+    COMPONENTS = nieuw.map(c => ({ n: c.n, e: c.e, t: c.t }));
+    saveComponents();
+    if (hernoemd) syncToFirestore();
+    buildFixedColorRows();
+    buildMatrix();
+    closeCompModal();
+    showSaveToast('Componenten opgeslagen ✓', false);
+  });
+
+  // ---------- Invoeromgeving (modal) ----------
+  let MASTER_COLORS_LC = MASTER_COLORS.map(c => c.toLowerCase());
+  const NEW_VALUE = '__nieuw__';
+  let editingKey = null;
+  let copyMode = false;
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const editModal = document.getElementById('editModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const fKlantSelect = document.getElementById('fKlantSelect');
+  const fKlantNewWrap = document.getElementById('fKlantNewWrap');
+  const fKlantNew = document.getElementById('fKlantNew');
+  const fRasSelect = document.getElementById('fRasSelect');
+  const fRasNewWrap = document.getElementById('fRasNewWrap');
+  const fRasNew = document.getElementById('fRasNew');
+  const editFixedColorRowsEl = document.getElementById('editFixedColorRows');
+  const editColorRowsEl = document.getElementById('editColorRows');
+  const editTotalPctEl = document.getElementById('editTotalPct');
+  const addColorRowBtn = document.getElementById('addColorRowBtn');
+  const saveBtn = document.getElementById('saveBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const copyYearBtn = document.getElementById('copyYearBtn');
+  const newVersionBtn = document.getElementById('newVersionBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const newSerieBtn = document.getElementById('newSerieBtn');
+  const modalClose = document.getElementById('modalClose');
+
+  function buildFixedColorRows() {
+    const rij = name =>
+      '<div class="color-fixed-row">' +
+        '<span class="cf-name">' + name + ' <span class="eenheid">(' + escapeAttr(eenheidVan(name)) + ')</span></span>' +
+        '<input type="text" class="cf-opm" data-color="' + escapeAttr(name) + '" placeholder="–">' +
+        '<input type="number" class="cf-pct" data-color="' + escapeAttr(name) + '" data-type="' + typeVan(name) + '" placeholder="–" step="any" min="0">' +
+        '<input type="text" class="cf-sub" data-color="' + escapeAttr(name) + '" placeholder="–">' +
+      '</div>';
+    const grond = MASTER_COLORS.filter(n => typeVan(n) === 'grondstof');
+    const bemest = MASTER_COLORS.filter(n => typeVan(n) === 'bemesting');
+    const inst = MASTER_COLORS.filter(n => typeVan(n) === 'instelling');
+    let html = '';
+    if (grond.length) html += '<div class="sec-sub"><span>Grondstoffen (%)</span><span id="grondTotaal"></span></div>' + grond.map(rij).join('');
+    if (bemest.length) html += '<div class="sec-sub"><span>Bemesting</span></div>' + bemest.map(rij).join('');
+    if (inst.length) html += '<div class="sec-sub"><span>Instellingen</span></div>' + inst.map(rij).join('');
+    editFixedColorRowsEl.innerHTML = html;
+    editFixedColorRowsEl.querySelectorAll('.cf-pct').forEach(inp => inp.addEventListener('input', updateEditTotal));
+    updateEditTotal();
+  }
+  buildFixedColorRows();
+
+  function newColorRow(name, pct, sub, opm) {
+    const row = document.createElement('div');
+    row.className = 'color-edit-row';
+    row.innerHTML =
+      '<input type="text" class="ce-name" placeholder="Naam component" value="' + escapeAttr(name || '') + '">' +
+      '<input type="text" class="ce-opm" placeholder="opm" value="' + escapeAttr(opm || '') + '">' +
+      '<input type="number" class="ce-pct" placeholder="hoev." step="any" min="0" value="' + (pct === undefined || pct === '' ? '' : pct) + '">' +
+      '<input type="text" class="ce-sub" placeholder="code" value="' + escapeAttr(sub || '') + '">' +
+      '<button type="button" class="ce-remove" aria-label="Verwijderen">&#10005;</button>';
+    row.querySelector('.ce-remove').addEventListener('click', () => { row.remove(); updateEditTotal(); });
+    row.querySelector('.ce-pct').addEventListener('input', updateEditTotal);
+    editColorRowsEl.appendChild(row);
+  }
+  addColorRowBtn.addEventListener('click', () => newColorRow());
+
+  function grondstofTotaalInvoer() {
+    let total = 0;
+    editFixedColorRowsEl.querySelectorAll('.cf-pct[data-type="grondstof"]').forEach(inp => {
+      const v = parseFloat(inp.value);
+      if (!isNaN(v)) total += v;
+    });
+    return total;
+  }
+  function updateEditTotal() {
+    const total = grondstofTotaalInvoer();
+    const ok = Math.abs(total - 100) < 0.05;
+    const tekst = 'Grondstoffen: ' + String(Math.round(total * 100) / 100).replace('.', ',') + '%';
+    editTotalPctEl.style.display = '';
+    editTotalPctEl.textContent = tekst + (ok ? ' ✓' : ' ⚠');
+    editTotalPctEl.style.color = ok ? '#0F6B36' : 'var(--accent)';
+    const gt = document.getElementById('grondTotaal');
+    if (gt) {
+      gt.className = ok ? 'tot-ok' : 'tot-fout';
+      gt.textContent = ok ? '100% ✓' : String(Math.round(total * 100) / 100).replace('.', ',') + '% — moet 100% zijn';
+    }
+  }
+
+  function clearFixedColorRows() {
+    editFixedColorRowsEl.querySelectorAll('.cf-pct, .cf-sub, .cf-opm').forEach(inp => inp.value = '');
+  }
+
+  function ddmmyyyyToISO(s) {
+    const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(s || '');
+    return m ? (m[3] + '-' + m[2] + '-' + m[1]) : '';
+  }
+  function isoToDdmmyyyy(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    return m ? (m[3] + '-' + m[2] + '-' + m[1]) : '';
+  }
+
+  function clearDataFields() {
+    document.getElementById('fJaar').value = '';
+    document.getElementById('fAanvraag').value = '';
+    document.getElementById('fBevestigd').value = '';
+    document.getElementById('fNotitie').value = '';
+    document.getElementById('fAantallen').value = '';
+    const bevestigdDoorEl = document.getElementById('bevestigdDoorInfo');
+    bevestigdDoorEl.style.display = 'none';
+    bevestigdDoorEl.textContent = '';
+    clearFixedColorRows();
+    editColorRowsEl.innerHTML = '';
+    updateEditTotal();
+  }
+
+  function loadDataFields(col) {
+    document.getElementById('fJaar').value = col.laatste_wijziging || '';
+    document.getElementById('fAanvraag').value = ddmmyyyyToISO(col.aanvraag);
+    document.getElementById('fBevestigd').value = ddmmyyyyToISO(col.bevestigd);
+    document.getElementById('fNotitie').value = col.notitie || '';
+    document.getElementById('fAantallen').value = col.aantallen_verwacht || '';
+    const bevestigdDoorEl = document.getElementById('bevestigdDoorInfo');
+    if (col.bevestigd && col.bevestigd_door) {
+      bevestigdDoorEl.textContent = 'Bevestigd door ' + col.bevestigd_door;
+      bevestigdDoorEl.style.display = '';
+    } else {
+      bevestigdDoorEl.style.display = 'none';
+      bevestigdDoorEl.textContent = '';
+    }
+    clearFixedColorRows();
+    editColorRowsEl.innerHTML = '';
+    (col.colors || []).forEach(([n, p, s, o]) => {
+      const idx = MASTER_COLORS_LC.indexOf(n.trim().toLowerCase());
+      if (idx > -1) {
+        editFixedColorRowsEl.querySelectorAll('.cf-pct')[idx].value = p;
+        editFixedColorRowsEl.querySelectorAll('.cf-sub')[idx].value = s || '';
+        editFixedColorRowsEl.querySelectorAll('.cf-opm')[idx].value = o || '';
+      } else {
+        newColorRow(n, p, s, o);
+      }
+    });
+    updateEditTotal();
+  }
+
+  function fillFKlantSelect() {
+    const current = fKlantSelect.value;
+    fKlantSelect.innerHTML = '';
+    getGrowers().forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g; opt.textContent = g;
+      fKlantSelect.appendChild(opt);
+    });
+    const newOpt = document.createElement('option');
+    newOpt.value = NEW_VALUE; newOpt.textContent = '➕ Nieuwe klant toevoegen';
+    fKlantSelect.appendChild(newOpt);
+    if (current && [...fKlantSelect.options].some(o => o.value === current)) fKlantSelect.value = current;
+  }
+
+  function fillFRasSelect() {
+    const g = fKlantSelect.value;
+    const current = fRasSelect.value;
+    fRasSelect.innerHTML = '';
+    if (g !== NEW_VALUE) {
+      [...new Set(DATA.filter(d => d.grower === g).map(d => d.ras))].forEach(ras => {
+        const opt = document.createElement('option');
+        opt.value = ras; opt.textContent = ras;
+        fRasSelect.appendChild(opt);
+      });
+    }
+    const newOpt = document.createElement('option');
+    newOpt.value = NEW_VALUE; newOpt.textContent = '➕ Nieuw mengsel toevoegen';
+    fRasSelect.appendChild(newOpt);
+    const options = [...fRasSelect.options].map(o => o.value);
+    if (g === NEW_VALUE) fRasSelect.value = NEW_VALUE;
+    else if (current && options.includes(current)) fRasSelect.value = current;
+  }
+
+  function currentGrowerValue() { return fKlantSelect.value === NEW_VALUE ? fKlantNew.value.trim() : fKlantSelect.value; }
+  function currentRasValue() { return fRasSelect.value === NEW_VALUE ? fRasNew.value.trim() : fRasSelect.value; }
+
+  function updateOpKleurMode() {
+    editModal.classList.toggle('op-kleur-mode', isOpKleurGrower(currentGrowerValue()));
+  }
+  function updateNewWraps() {
+    fKlantNewWrap.style.display = fKlantSelect.value === NEW_VALUE ? '' : 'none';
+    fRasNewWrap.style.display = fRasSelect.value === NEW_VALUE ? '' : 'none';
+    updateOpKleurMode();
+  }
+
+  function findColumn(grower, ras, jaar) {
+    const matches = DATA.filter(d => d.grower === grower && d.ras === ras);
+    if (matches.length === 0) return null;
+    if (jaar) {
+      const exact = matches.find(d => d.id === jaar);
+      if (exact) return exact;
+    }
+    if (selJaar.size) {
+      const byFilter = [...matches].sort((a, b) => sorteerDatum(b).localeCompare(sorteerDatum(a))).find(d => selJaar.has(jaarVan(d)));
+      if (byFilter) return byFilter;
+    }
+    return [...matches].sort((a, b) => sorteerDatum(b).localeCompare(sorteerDatum(a)))[0];
+  }
+
+  function updateRenameRow() {
+    document.getElementById('renameRow').style.display = editingKey && !copyMode ? '' : 'none';
+  }
+
+  function setEditTitle(col) {
+    updateRenameRow();
+    modalTitle.textContent = 'Mengsel bewerken: ' + col.grower + ' ' + col.ras + (col.laatste_wijziging ? ' (' + col.laatste_wijziging + ')' : '');
+  }
+
+  function onComboChange() {
+    if (fKlantSelect.value !== NEW_VALUE && fRasSelect.value !== NEW_VALUE) {
+      const col = findColumn(fKlantSelect.value, fRasSelect.value, null);
+      if (col) {
+        editingKey = { id: col.id, grower: col.grower, ras: col.ras, jaar: col.laatste_wijziging || '' };
+        loadDataFields(col);
+        deleteBtn.style.display = '';
+        copyYearBtn.style.display = '';
+        newVersionBtn.style.display = '';
+        setEditTitle(col);
+        return;
+      }
+    }
+    editingKey = null;
+    updateRenameRow();
+    clearDataFields();
+    deleteBtn.style.display = 'none';
+    copyYearBtn.style.display = 'none';
+    newVersionBtn.style.display = 'none';
+    modalTitle.textContent = 'Mengsel aanmaken';
+  }
+
+  let lastKlantVal = null;
+  let lastRasVal = null;
+  function rememberComboValues() { lastKlantVal = fKlantSelect.value; lastRasVal = fRasSelect.value; }
+
+  fKlantSelect.addEventListener('change', () => {
+    if (editingKey && !confirm('Je wijzigt de klant van een bestaand recept. Klopt dit?')) {
+      fKlantSelect.value = lastKlantVal;
+      return;
+    }
+    fillFRasSelect(); updateNewWraps(); onComboChange(); rememberComboValues();
+  });
+  fRasSelect.addEventListener('change', () => {
+    if (editingKey && !confirm('Je wijzigt het mengsel van een bestaand recept. Klopt dit?')) {
+      fRasSelect.value = lastRasVal;
+      return;
+    }
+    updateNewWraps(); onComboChange(); rememberComboValues();
+  });
+  fKlantNew.addEventListener('input', () => { modalTitle.textContent = 'Mengsel aanmaken'; updateOpKleurMode(); });
+  fRasNew.addEventListener('input', () => { modalTitle.textContent = 'Mengsel aanmaken'; });
+
+  function openModal(grower, ras, id) {
+    copyMode = false;
+    if (id) {
+      const rec = DATA.find(d => d.id === id);
+      if (rec) { grower = rec.grower; ras = rec.ras; }
+    }
+    const jaar = id;
+    fillFKlantSelect();
+    fKlantSelect.value = grower || NEW_VALUE;
+    fillFRasSelect();
+    if (ras) fRasSelect.value = ras; else if (!grower) fRasSelect.value = NEW_VALUE;
+    updateNewWraps();
+    if (grower && ras && jaar) {
+      const col = findColumn(grower, ras, jaar);
+      if (col) {
+        editingKey = { id: col.id, grower: col.grower, ras: col.ras, jaar: col.laatste_wijziging || '' };
+        loadDataFields(col);
+        deleteBtn.style.display = '';
+        copyYearBtn.style.display = '';
+        newVersionBtn.style.display = '';
+        setEditTitle(col);
+      } else {
+        onComboChange();
+      }
+    } else {
+      onComboChange();
+    }
+    rememberComboValues();
+    modalOverlay.style.display = 'flex';
+    if (!grower) fKlantNew.focus();
+  }
+  function closeModal() { modalOverlay.style.display = 'none'; }
+
+  newSerieBtn.addEventListener('click', () => openModal());
+  modalClose.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+  document.getElementById('matrixTable').addEventListener('click', (e) => {
+    const th = e.target.closest('th.clickable');
+    if (!th) return;
+    openModal(null, null, th.dataset.id);
+  });
+
+  function currentEditColumnByKey(key) {
+    return DATA.find(d => d.id === key.id);
+  }
+
+  saveBtn.addEventListener('click', () => {
+    const rawGrower = currentGrowerValue();
+    const grower = isOpKleurGrower(rawGrower) ? OP_KLEUR_KLANT : rawGrower;
+    const ras = currentRasValue();
+    if (!grower || !ras) { alert('Vul in elk geval Klant en Mengsel in.'); return; }
+
+    const isOpKleur = isOpKleurGrower(grower);
+
+    const fixedColors = [...editFixedColorRowsEl.querySelectorAll('.cf-pct')]
+      .map(inp => {
+        const subInp = editFixedColorRowsEl.querySelector('.cf-sub[data-color="' + CSS.escape(inp.dataset.color) + '"]');
+        const opmInp = editFixedColorRowsEl.querySelector('.cf-opm[data-color="' + CSS.escape(inp.dataset.color) + '"]');
+        const sub = subInp ? subInp.value.trim() : '';
+        const opm = opmInp ? opmInp.value.trim() : '';
+        const pctVal = parseFloat(inp.value);
+        return { naam: inp.dataset.color, pct: isOpKleur ? 0 : pctVal, sub, opm, keep: isOpKleur ? !!sub : !isNaN(pctVal) };
+      })
+      .filter(r => r.keep)
+      .map(r => [r.naam, r.pct, r.sub || null, r.opm || null]);
+    const customColors = [...document.querySelectorAll('.color-edit-row')].map(r => {
+      const name = r.querySelector('.ce-name').value.trim();
+      const pctVal = parseFloat(r.querySelector('.ce-pct').value);
+      const sub = r.querySelector('.ce-sub').value.trim();
+      const opm = r.querySelector('.ce-opm').value.trim();
+      return { name, pct: isOpKleur ? 0 : pctVal, sub, opm, keep: name && (isOpKleur ? !!sub : !isNaN(pctVal)) };
+    }).filter(r => r.keep).map(r => [r.name, r.pct, r.sub || null, r.opm || null]);
+    const colorsArr = [...fixedColors, ...customColors];
+
+    const grondTot = colorsArr.reduce((s2, c) => s2 + (typeVan(c[0]) === 'grondstof' ? c[1] : 0), 0);
+    const heeftGrond = colorsArr.some(c => typeVan(c[0]) === 'grondstof');
+    if (!isOpKleur && heeftGrond && Math.abs(grondTot - 100) > 0.05) {
+      if (!confirm('Let op: de grondstoffen zijn samen ' + String(Math.round(grondTot * 100) / 100).replace('.', ',') + '%, niet 100%.\n\nToch opslaan?')) return;
+    }
+
+    const newJaar = document.getElementById('fJaar').value.trim() || null;
+    const newBevestigd = isoToDdmmyyyy(document.getElementById('fBevestigd').value) || null;
+    const prevRecord = (editingKey && !copyMode)
+      ? currentEditColumnByKey(editingKey) : null;
+    let bevestigdDoor;
+    if (!newBevestigd) bevestigdDoor = null;
+    else if (prevRecord && prevRecord.bevestigd === newBevestigd) bevestigdDoor = prevRecord.bevestigd_door || currentUserNaam;
+    else bevestigdDoor = currentUserNaam;
+
+    const newCol = {
+      full: grower + ' ' + ras,
+      grower, ras,
+      laatste_wijziging: newJaar,
+      aanvraag: isoToDdmmyyyy(document.getElementById('fAanvraag').value) || null,
+      bevestigd: newBevestigd,
+      bevestigd_door: bevestigdDoor,
+      notitie: document.getElementById('fNotitie').value.trim() || null,
+      aantallen_verwacht: document.getElementById('fAantallen').value.trim() || null,
+      colors: colorsArr,
+      submix: prevRecord ? (prevRecord.submix || []) : []
+    };
+
+    const bewerkId = editingKey && !copyMode ? editingKey.id : null;
+    newCol.id = bewerkId || nieuwId();
+    const zelfdeDatum = newCol.bevestigd && DATA.some(d => d.id !== bewerkId && d.grower === grower && d.ras === ras && d.bevestigd === newCol.bevestigd);
+    if (zelfdeDatum && !confirm('Er is al een versie van "' + grower + ' ' + ras + '" bevestigd op ' + newCol.bevestigd + '.\n\nToch opslaan als extra versie?')) return;
+    if (bewerkId) DATA = DATA.filter(d => d.id !== bewerkId);
+    DATA.push(newCol);
+    copyMode = false;
+
+    buildMatrix();
+    closeModal();
+    syncToFirestore();
+  });
+
+  deleteBtn.addEventListener('click', () => {
+    if (!editingKey) return;
+    const rec = currentEditColumnByKey(editingKey);
+    const wanneer = rec && (rec.bevestigd || rec.aanvraag) ? 'versie ' + (rec.bevestigd || rec.aanvraag) : 'deze versie';
+    if (!confirm('Recept "' + editingKey.grower + ' ' + editingKey.ras + '" (' + wanneer + ') verwijderen?')) return;
+    DATA = DATA.filter(d => d.id !== editingKey.id);
+    buildMatrix();
+    closeModal();
+    syncToFirestore();
+  });
+
+  // ---------- Namen wijzigen ----------
+  function naHernoemen(grower, ras) {
+    syncToFirestore();
+    fillFKlantSelect();
+    fKlantSelect.value = grower;
+    fillFRasSelect();
+    fRasSelect.value = ras;
+    updateNewWraps();
+    rememberComboValues();
+    editingKey.grower = grower;
+    editingKey.ras = ras;
+    const col = currentEditColumnByKey(editingKey);
+    if (col) setEditTitle(col);
+    buildMatrix();
+    showSaveToast('Naam gewijzigd ✓', false);
+  }
+
+  document.getElementById('renameKlantBtn').addEventListener('click', () => {
+    if (!editingKey) return;
+    const oud = editingKey.grower;
+    const nieuw = (prompt('Nieuwe klantnaam (geldt voor alle mengsels van "' + oud + '"):', oud) || '').trim();
+    if (!nieuw || nieuw === oud) return;
+    const bestaat = DATA.some(d => d.grower === nieuw);
+    if (bestaat && !confirm('Klant "' + nieuw + '" bestaat al. Samenvoegen met "' + oud + '"?')) return;
+    const botsing = DATA.some(a => a.grower === oud && DATA.some(b => b.grower === nieuw && b.ras === a.ras && (b.laatste_wijziging || '') === (a.laatste_wijziging || '')));
+    DATA.forEach(d => { if (d.grower === oud) { d.grower = nieuw; d.full = nieuw + ' ' + d.ras; } });
+    if (selKlant.has(oud)) { selKlant.delete(oud); selKlant.add(nieuw); }
+    naHernoemen(nieuw, editingKey.ras);
+  });
+
+  document.getElementById('renameMengselBtn').addEventListener('click', () => {
+    if (!editingKey) return;
+    const g = editingKey.grower, oud = editingKey.ras;
+    const nieuw = (prompt('Nieuwe mengselnaam voor "' + oud + '" van ' + g + ' (alle jaren):', oud) || '').trim();
+    if (!nieuw || nieuw === oud) return;
+    const botsing = DATA.some(a => a.grower === g && a.ras === oud && DATA.some(b => b.grower === g && b.ras === nieuw && (b.laatste_wijziging || '') === (a.laatste_wijziging || '')));
+    DATA.forEach(d => { if (d.grower === g && d.ras === oud) { d.ras = nieuw; d.full = g + ' ' + nieuw; } });
+    if (selSerie.has(oud) && !DATA.some(d => d.ras === oud)) { selSerie.delete(oud); selSerie.add(nieuw); }
+    naHernoemen(g, nieuw);
+  });
+
+  copyYearBtn.addEventListener('click', () => {
+    if (!editingKey) return;
+    const jaarEl = document.getElementById('fJaar');
+    const recNu = currentEditColumnByKey(editingKey);
+    const curYear = parseInt(jaarEl.value || (recNu ? jaarVan(recNu) : ''), 10);
+    if (isNaN(curYear)) { alert('Vul eerst een geldig jaar in bij Jaar.'); return; }
+    const nextYear = String(curYear + 1);
+    if (!confirm('Kopie maken naar jaar ' + nextYear + '? Weet je het zeker?')) return;
+    jaarEl.value = nextYear;
+    document.getElementById('fAanvraag').value = '';
+    document.getElementById('fBevestigd').value = '';
+    const bevestigdDoorEl = document.getElementById('bevestigdDoorInfo');
+    bevestigdDoorEl.style.display = 'none';
+    bevestigdDoorEl.textContent = '';
+    copyMode = true;
+    updateRenameRow();
+    modalTitle.textContent = 'Mengsel bewerken: ' + editingKey.grower + ' ' + editingKey.ras + ' (kopie ' + nextYear + ')';
+  });
+  newVersionBtn.addEventListener('click', () => {
+    if (!editingKey) return;
+    if (!confirm('Nieuwe versie maken van dit recept? De oude versie blijft bewaard.')) return;
+    const recNu = currentEditColumnByKey(editingKey);
+    const jaarEl = document.getElementById('fJaar');
+    if (!jaarEl.value && recNu) jaarEl.value = jaarVan(recNu);
+    document.getElementById('fAanvraag').value = '';
+    document.getElementById('fBevestigd').value = '';
+    const bevestigdDoorEl = document.getElementById('bevestigdDoorInfo');
+    bevestigdDoorEl.style.display = 'none';
+    bevestigdDoorEl.textContent = '';
+    copyMode = true;
+    updateRenameRow();
+    modalTitle.textContent = 'Nieuwe versie: ' + editingKey.grower + ' ' + editingKey.ras;
+  });
+
+  loadLocalData();
+  zorgVoorIds();
+  buildMatrix();
+  startFirebase();
+</script>
+</body>
+</html>
