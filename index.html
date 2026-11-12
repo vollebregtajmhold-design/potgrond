@@ -460,7 +460,8 @@
   .jaar-check { background: var(--mint-rand); }
   .bev-datum { color: #1E3D2C; }
 
-  .matrix-shell { width: fit-content; max-width: 100%; }
+  .matrix-shell { width: fit-content; max-width: 100%; margin-left: auto; margin-right: auto; }
+  #appFooter { text-align: center; }
   footer { color: #E2E5E8; }
 
   /* Kolom 'Code' is uitgezet */
@@ -595,6 +596,7 @@
         <div class="user-bar">
           <span class="sync-dot offline" id="syncDot" title="Verbinden…"></span>
           <span class="user-email" id="userEmail"></span>
+          <button type="button" class="btn-logout" id="fullscreenBtn" style="display:none" title="Volledig scherm aan/uit">&#9974; Volledig scherm</button>
           <button type="button" class="btn-logout" id="updateBtn" title="Nieuwste versie van GitHub laden">&#10227; Bijwerken</button>
           <button type="button" class="btn-logout" id="installBtn" style="display:none" title="Als app op je bureaublad zetten">&#11015; Installeren</button>
           <button type="button" class="btn-logout" id="logoutBtn">Uitloggen</button>
@@ -615,6 +617,10 @@
           </div>
         </div>
         <div class="filter-field">
+          <label for="nieuwsteBtn">Alleen nieuwste</label>
+          <button type="button" class="btn-toggle" id="nieuwsteBtn" title="Per mengsel alleen de laatste versie tonen">Nee</button>
+        </div>
+        <div class="filter-field">
           <label>Klant</label>
           <div class="multi-select-wrap" id="klantSelectWrap">
             <button type="button" class="multi-select-btn" id="klantSelectBtn">
@@ -633,10 +639,6 @@
             </button>
             <div class="multi-select-dropdown" id="serieSelectDropdown"></div>
           </div>
-        </div>
-        <div class="filter-field">
-          <label for="nieuwsteBtn">Alleen nieuwste</label>
-          <button type="button" class="btn-toggle" id="nieuwsteBtn" title="Per mengsel alleen de laatste versie tonen">Nee</button>
         </div>
         <button type="button" class="btn-clear-filter" id="clearFilterBtn" title="Filter wissen">&#10005; Wissen</button>
         <div class="export-menu" id="exportMenu">
@@ -663,7 +665,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.10 — 12 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.12 — 12 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1228,7 +1230,7 @@
   }
 
   let alleenNieuwste = false;
-  try { alleenNieuwste = localStorage.getItem('potgrond-alleen-nieuwste') === 'ja'; } catch (e) {}
+  alleenNieuwste = true; // bij openen altijd aan
 
   function filteredDataForMatrix() {
     const lijst = DATA.filter(col =>
@@ -1269,15 +1271,24 @@
       return;
     }
     let html = options.map(o => {
-      const checked = sel.has(o) ? ' checked' : '';
+      const checked = (!sel.size || sel.has(o)) ? ' checked' : '';
       return '<label class="multi-select-item"><input type="checkbox" class="ms-checkbox" value="' + escapeAttr(o) + '"' + checked + '> ' + o + '</label>';
     }).join('');
-    html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">Selectie wissen</button></div>';
+    html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">Alles aanvinken</button></div>';
     dropdown.innerHTML = html;
 
     dropdown.querySelectorAll('.ms-checkbox').forEach(cb => {
       cb.addEventListener('change', () => {
-        if (cb.checked) sel.add(cb.value); else sel.delete(cb.value);
+        if (cb.checked) {
+          sel.add(cb.value);
+        } else if (!sel.size) {
+          // Alles stond aan: alles behalve deze
+          options.forEach(o => { if (o !== cb.value) sel.add(o); });
+        } else {
+          sel.delete(cb.value);
+        }
+        if (sel.size === options.length) sel.clear(); // alles gekozen = geen filter
+        if (!sel.size) dropdown.querySelectorAll('.ms-checkbox').forEach(x => { x.checked = true; });
         updateMultiSelectUI(btnId, sel, allLabel);
         buildMatrix();
       });
@@ -1299,11 +1310,8 @@
     const klanten = [...new Set(DATA.map(d => d.grower))].sort((a, b) => a.localeCompare(b));
     const series = [...new Set(DATA.map(d => d.ras))].sort((a, b) => a.localeCompare(b));
 
-    if (!jaarFilterInitialized && jaren.length) {
-      const ditJaar = String(new Date().getFullYear());
-      if (jaren.includes(ditJaar)) selJaar.add(ditJaar);
-      jaarFilterInitialized = true;
-    }
+    // Bij openen: alle jaren (geen jaarfilter).
+    jaarFilterInitialized = true;
 
     const jarenSet = new Set(jaren);
     selJaar.forEach(j => { if (!jarenSet.has(j)) selJaar.delete(j); });
@@ -1459,8 +1467,7 @@
 
   document.getElementById('clearFilterBtn').addEventListener('click', () => {
     selJaar.clear(); selKlant.clear(); selSerie.clear();
-    alleenNieuwste = false;
-    try { localStorage.setItem('potgrond-alleen-nieuwste', 'nee'); } catch (e) {}
+    alleenNieuwste = true;
     toonNieuwsteKnop();
     buildMatrix();
   });
@@ -1536,7 +1543,6 @@
   toonNieuwsteKnop();
   nieuwsteBtn.addEventListener('click', () => {
     alleenNieuwste = !alleenNieuwste;
-    try { localStorage.setItem('potgrond-alleen-nieuwste', alleenNieuwste ? 'ja' : 'nee'); } catch (e) {}
     toonNieuwsteKnop();
     buildMatrix();
   });
@@ -2093,8 +2099,31 @@
     modalTitle.textContent = 'Nieuwe versie: ' + editingKey.grower + ' ' + editingKey.ras;
   });
 
+  // ---------- Volledig scherm ----------
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const kanFullscreen = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+  function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function toonFullscreenKnop() {
+    fullscreenBtn.innerHTML = isFullscreen() ? '&#10005; Terug' : '&#9974; Volledig scherm';
+  }
+  if (kanFullscreen) {
+    fullscreenBtn.style.display = '';
+    toonFullscreenKnop();
+    fullscreenBtn.addEventListener('click', () => {
+      const el = document.documentElement;
+      if (isFullscreen()) {
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else {
+        const p = (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+        if (p && p.catch) p.catch(() => showSaveToast('Volledig scherm lukt niet in deze browser', true));
+      }
+    });
+    document.addEventListener('fullscreenchange', toonFullscreenKnop);
+    document.addEventListener('webkitfullscreenchange', toonFullscreenKnop);
+  }
+
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.10';
+  const APP_VERSIE = '0.12';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
