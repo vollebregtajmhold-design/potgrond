@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Potgrond">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#3F8C55">
+<meta name="theme-color" content="#4B2A6E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Inter:wght@400;500;600;700&display=swap">
 <style>
   :root {
@@ -394,6 +394,91 @@
     .modal-body { max-height: none; flex: 1; }
   }
 
+
+  /* ===== Thema: paars / mintgroen / grijs (zoals planningsapp) ===== */
+  :root {
+    --paars: #4B2A6E; --paars-2: #5E3A85;
+    --mint: #D3E8DA; --mint-rand: #2F6B4A; --mint-hover: #C2DECB;
+    --blauw: #1F5FC4; --roze: #E0147A; --groen-rand: #5BAE4F;
+    --creme: #F3EFE8; --grijs-bg: #6B7177; --grijs-kop: #B9B9B9; --grijs-kop-2: #D7D7D7;
+    --accent: #1F5FC4; --accent-soft: #E3ECFA; --tint-blue: #E7F1EA; --border: #CFCFCF;
+    --text: #1A1A1A; --text-dim: #555B60;
+  }
+  body { background: var(--grijs-bg); color: var(--text); }
+  #topChrome { margin: -24px -28px 18px; }
+  #topChrome header {
+    background: var(--paars); margin: 0; padding: 12px 28px;
+    border-bottom: 3px solid var(--paars-2);
+  }
+  #topChrome h1 { color: #FFFFFF; }
+  #topChrome .header-stats { color: #E6DDF2; }
+  #topChrome .user-bar { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); box-shadow: none; color: #EEE; }
+  #topChrome .user-bar .user-email { color: #FFFFFF; }
+  #topChrome .btn-logout { background: var(--mint); color: var(--mint-rand); border-color: var(--mint-rand); }
+  #topChrome .toolbar {
+    background: var(--creme); margin: 0; padding: 12px 28px 14px;
+    border-bottom: 1px solid #D9D3C8;
+  }
+  .filter-field label { color: #3A3F44; }
+
+  /* knoppen: mintgroen met donkergroene rand */
+  .multi-select-btn, .btn-toggle, .btn-clear-filter, #exportMenuBtn {
+    background: var(--mint); color: #1E3D2C; border: 2px solid var(--mint-rand);
+    border-radius: 8px; font-weight: 700;
+  }
+  .multi-select-btn:hover, .btn-toggle:hover, .btn-clear-filter:hover { background: var(--mint-hover); border-color: var(--mint-rand); }
+  .multi-select-wrap.open .multi-select-btn { outline: 2px solid var(--blauw); }
+  .btn-toggle.on { background: var(--blauw); color: #FFFFFF; border-color: #164A9C; }
+  .btn-new-serie {
+    background: var(--blauw); color: #FFFFFF; border: 2px solid #164A9C; border-radius: 8px;
+    box-shadow: 0 4px 12px -4px rgba(31,95,196,0.6);
+  }
+  .btn-new-serie:hover { box-shadow: 0 6px 16px -4px rgba(31,95,196,0.7); }
+  .multi-select-dropdown, .export-menu-dropdown { border-radius: 8px; }
+  .multi-select-item input[type="checkbox"] { accent-color: var(--blauw); }
+
+  /* tabel */
+  .matrix-shell {
+    background: var(--creme); border: none; border-radius: 4px;
+    border-top: 5px solid var(--blauw); border-left: 5px solid var(--groen-rand); border-bottom: 6px solid var(--roze);
+    box-shadow: 0 10px 28px -8px rgba(0,0,0,0.45);
+  }
+  thead th, thead tr.klant-row th { background: var(--grijs-kop); color: #111; font-weight: 800; }
+  thead tr.serie-row th { background: var(--grijs-kop-2); color: #111; }
+  thead tr.jaar-row th { background: #E8E8E8; color: #111; }
+  thead th.corner { background: var(--grijs-kop); color: #111; }
+  thead tr.serie-row th.clickable:hover { background: var(--blauw); color: #FFFFFF; }
+  tbody th, tbody td { background: var(--creme); color: #111; }
+  tbody tr:hover th { background: #E9E3D8; }
+  tbody tr.sec-row th, tbody tr.sec-row td { background: var(--mint); color: #1E3D2C; }
+  tbody tr.tot-row th, tbody tr.tot-row td { background: #E3F2E8; }
+  .jaar-check { background: var(--mint-rand); }
+  .bev-datum { color: #1E3D2C; }
+
+  .matrix-shell { width: fit-content; max-width: 100%; }
+  footer { color: #E2E5E8; }
+
+  /* invoerschermen */
+  .modal-head { background: var(--paars); border-bottom: 3px solid var(--paars-2); }
+  .modal-head h2 { color: #FFFFFF; }
+  .modal-close { background: rgba(255,255,255,0.15); color: #FFFFFF; }
+  .modal-close:hover { background: rgba(255,255,255,0.28); }
+  .btn-primary { background: var(--blauw); color: #FFFFFF; box-shadow: 0 4px 12px -4px rgba(31,95,196,0.6); border-radius: 8px; }
+  .btn-secondary, .btn-danger, .btn-add { border-radius: 8px; }
+  .btn-danger { color: #B3261E; border-color: #B3261E; }
+
+  /* inlogscherm */
+  .auth-overlay { background: var(--grijs-bg); }
+  .auth-box { border-left: 5px solid var(--groen-rand); border-top: 5px solid var(--paars); border-radius: 8px; }
+  .btn-google { background: var(--mint); border: 2px solid var(--mint-rand); color: #1E3D2C; border-radius: 8px; }
+  .btn-google:hover { background: var(--mint-hover); }
+
+  @media (max-width: 640px) {
+    #topChrome { margin: -14px -12px 12px; }
+    #topChrome header, #topChrome .toolbar { padding-left: 12px; padding-right: 12px; }
+    #mobileChromeToggle { background: var(--mint); border: 2px solid var(--mint-rand); border-radius: 8px; }
+  }
+
   @media print {
     body { padding: 0; background: #FFFFFF; }
     .toolbar, .header-stats, footer, .modal-overlay, .save-toast { display: none !important; }
@@ -566,7 +651,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.5 — 13 oktober 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.6 — 12 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
