@@ -463,6 +463,11 @@
   .matrix-shell { width: fit-content; max-width: 100%; }
   footer { color: #E2E5E8; }
 
+  /* Kolom 'Code' is uitgezet */
+  .color-fixed-row, .fixed-color-head { grid-template-columns: 1fr 80px 70px; }
+  .color-edit-row { grid-template-columns: 1fr 80px 70px 30px; }
+  .color-fixed-row .cf-sub, .color-edit-row .ce-sub { display: none; }
+
   /* invoerschermen */
   .modal-head { background: var(--paars); border-bottom: 3px solid var(--paars-2); }
   .modal-head h2 { color: #FFFFFF; }
@@ -630,8 +635,8 @@
           </div>
         </div>
         <div class="filter-field">
-          <label for="subnumBtn">Codes</label>
-          <button type="button" class="btn-toggle" id="subnumBtn" data-value="nee">Nee</button>
+          <label for="nieuwsteBtn">Alleen nieuwste</label>
+          <button type="button" class="btn-toggle" id="nieuwsteBtn" title="Per mengsel alleen de laatste versie tonen">Nee</button>
         </div>
         <button type="button" class="btn-clear-filter" id="clearFilterBtn" title="Filter wissen">&#10005; Wissen</button>
         <div class="export-menu" id="exportMenu">
@@ -658,7 +663,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.8 — 12 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.10 — 12 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -726,7 +731,7 @@
             <span class="result-count" id="editTotalPct"></span>
           </div>
           <p class="sub">Vaste volgorde, zoals in de matrix. Grondstoffen in %, samen 100%. Bemesting en instellingen als waarde.</p>
-          <div class="fixed-color-head"><span>Component</span><span>Opm.</span><span>Hoeveel</span><span>Code</span></div>
+          <div class="fixed-color-head"><span>Component</span><span>Opm.</span><span>Hoeveel</span></div>
         </div>
         <div id="editFixedColorRows"></div>
 
@@ -1222,12 +1227,24 @@
     return Array.from(extra).sort();
   }
 
+  let alleenNieuwste = false;
+  try { alleenNieuwste = localStorage.getItem('potgrond-alleen-nieuwste') === 'ja'; } catch (e) {}
+
   function filteredDataForMatrix() {
-    return DATA.filter(col =>
+    const lijst = DATA.filter(col =>
       (selKlant.size ? selKlant.has(col.grower) : !isOpKleurGrower(col.grower)) &&
       (!selJaar.size || selJaar.has(jaarVan(col))) &&
       (!selSerie.size || selSerie.has(col.ras))
     );
+    if (!alleenNieuwste) return lijst;
+    // Per klant + mengsel alleen de versie met de nieuwste datum houden.
+    const beste = new Map();
+    lijst.forEach(col => {
+      const sleutel = (col.grower || '') + '\u0000' + (col.ras || '');
+      const huidig = beste.get(sleutel);
+      if (!huidig || sorteerDatum(col).localeCompare(sorteerDatum(huidig)) > 0) beste.set(sleutel, col);
+    });
+    return lijst.filter(col => beste.get((col.grower || '') + '\u0000' + (col.ras || '')) === col);
   }
 
   let jaarFilterInitialized = false;
@@ -1442,6 +1459,9 @@
 
   document.getElementById('clearFilterBtn').addEventListener('click', () => {
     selJaar.clear(); selKlant.clear(); selSerie.clear();
+    alleenNieuwste = false;
+    try { localStorage.setItem('potgrond-alleen-nieuwste', 'nee'); } catch (e) {}
+    toonNieuwsteKnop();
     buildMatrix();
   });
 
@@ -1508,8 +1528,21 @@
   });
   document.getElementById('csvBtn').addEventListener('click', () => { exportMenu.classList.remove('open'); downloadCsv(); });
 
+  const nieuwsteBtn = document.getElementById('nieuwsteBtn');
+  function toonNieuwsteKnop() {
+    nieuwsteBtn.textContent = alleenNieuwste ? 'Ja' : 'Nee';
+    nieuwsteBtn.classList.toggle('on', alleenNieuwste);
+  }
+  toonNieuwsteKnop();
+  nieuwsteBtn.addEventListener('click', () => {
+    alleenNieuwste = !alleenNieuwste;
+    try { localStorage.setItem('potgrond-alleen-nieuwste', alleenNieuwste ? 'ja' : 'nee'); } catch (e) {}
+    toonNieuwsteKnop();
+    buildMatrix();
+  });
+
   const subnumBtn = document.getElementById('subnumBtn');
-  subnumBtn.addEventListener('click', () => {
+  if (subnumBtn) subnumBtn.addEventListener('click', () => {
     showSubnummers = !showSubnummers;
     subnumBtn.textContent = showSubnummers ? 'Ja' : 'Nee';
     subnumBtn.dataset.value = showSubnummers ? 'ja' : 'nee';
@@ -2061,7 +2094,7 @@
   });
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.8';
+  const APP_VERSIE = '0.10';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
