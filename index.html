@@ -464,6 +464,17 @@
   #appFooter { text-align: center; }
   footer { color: #E2E5E8; }
 
+  /* Klanten en uitleg */
+  .klant-row { display: grid; grid-template-columns: 1fr auto 30px; gap: 6px; align-items: center; margin-bottom: 5px; }
+  .panel .klant-row input { width: 100%; font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+  .klant-aantal { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; }
+  .uitleg { background: #E3ECFA; border: 1px solid #B9CDEE; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px; color: #163E6E; }
+  .uitleg ol { margin: 4px 0 0; padding-left: 20px; }
+  .uitleg li { margin: 1px 0; }
+  .stapnr { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: var(--blauw); color: #fff; font-size: 10.5px; margin-right: 3px; }
+  .hint { font-size: 12.5px; color: var(--text-panel-dim); margin: 2px 0 6px; }
+  .link-btn { font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--blauw); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; }
+
   /* Kolom 'Code' is uitgezet */
   .color-fixed-row, .fixed-color-head { grid-template-columns: 1fr 80px 70px; }
   .color-edit-row { grid-template-columns: 1fr 80px 70px 30px; }
@@ -653,6 +664,7 @@
         </div>
       </div>
       <div class="toolbar-right">
+        <button type="button" class="btn-clear-filter" id="klantBtn">&#128101; Klanten</button>
         <button type="button" class="btn-clear-filter" id="compBtn2">&#9881; Componenten</button>
         <button type="button" class="btn-new-serie" id="newSerieBtn">+ Mengsel aanmaken</button>
       </div>
@@ -665,7 +677,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.13 — 13 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.14 — 13 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -675,19 +687,29 @@
       <button type="button" class="modal-close" id="modalClose" aria-label="Sluiten">&#10005;</button>
     </div>
     <div class="modal-body">
+      <div class="uitleg" id="aanmaakUitleg">
+        <b>Zo maak je een mengsel:</b>
+        <ol>
+          <li>Kies de <b>klant</b></li>
+          <li>Typ een <b>naam</b> voor het mengsel</li>
+          <li>Vul de <b>datums</b> in</li>
+          <li>Vul de <b>grondstoffen</b> in (samen 100%) en de <b>bemesting</b></li>
+          <li>Klik op <b>Opslaan</b></li>
+        </ol>
+      </div>
       <div class="panel">
         <div class="field-row">
           <div class="field">
-            <label for="fKlantSelect">Klant</label>
+            <label for="fKlantSelect"><span class="stapnr">1</span> Klant</label>
             <select id="fKlantSelect"></select>
           </div>
           <div class="field">
-            <label for="fRasSelect">Mengsel</label>
+            <label for="fRasSelect"><span class="stapnr">2</span> Mengsel</label>
             <select id="fRasSelect"></select>
           </div>
         </div>
+        <p class="hint" id="klantHint">Klant staat er niet bij? <button type="button" class="link-btn" id="klantBeheerLink">&#128101; Klant toevoegen</button></p>
         <div class="field-row" id="renameRow" style="display:none">
-          <button type="button" class="btn-add" id="renameKlantBtn">&#9998; Klantnaam wijzigen</button>
           <button type="button" class="btn-add" id="renameMengselBtn">&#9998; Mengselnaam wijzigen</button>
         </div>
         <div class="field" id="fKlantNewWrap" style="display:none">
@@ -695,7 +717,7 @@
           <input type="text" id="fKlantNew" placeholder="bijv. Kwekerij De Groot">
         </div>
         <div class="field" id="fRasNewWrap" style="display:none">
-          <label for="fRasNew">Naam nieuw mengsel</label>
+          <label for="fRasNew">Naam van het nieuwe mengsel</label>
           <input type="text" id="fRasNew" placeholder="bijv. Potgrond Universeel">
         </div>
       </div>
@@ -751,6 +773,28 @@
         <button type="button" class="btn-secondary" id="cancelBtn">Annuleren</button>
         <button type="button" class="btn-danger" id="deleteBtn" style="display:none">Verwijderen</button>
         <button type="button" class="btn-primary" id="saveBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="klantOverlay" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-head">
+      <h2>Klanten beheren</h2>
+      <button type="button" class="modal-close" id="klantClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <p class="sub">Voeg klanten toe of wijzig een naam. Een nieuwe naam wordt ook in alle mengsels van die klant aangepast.</p>
+        <div id="klantRows"></div>
+        <button type="button" class="btn-add" id="klantAddBtn">+ Klant toevoegen</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary" id="klantCancelBtn">Annuleren</button>
+        <button type="button" class="btn-primary" id="klantSaveBtn">Opslaan</button>
       </div>
     </div>
   </div>
@@ -870,7 +914,7 @@
 
   function downloadBackup() {
     try {
-      const blob = new Blob([JSON.stringify({ mengsels: DATA, componenten: COMPONENTS }, null, 2)], { type: 'application/json' });
+      const blob = new Blob([JSON.stringify({ mengsels: DATA, componenten: COMPONENTS, klanten: klantenLijst() }, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -973,7 +1017,7 @@
     bewaarLokaal();
     if (!firestoreReady) { setSyncDot(false, 'Niet verbonden — alleen lokaal bewaard'); return false; }
     try {
-      await fb.setDoc(recepteDocRef, { items: encodeForFirestore(DATA), componenten: COMPONENTS });
+      await fb.setDoc(recepteDocRef, { items: encodeForFirestore(DATA), componenten: COMPONENTS, klanten: klantenLijst() });
       setSyncDot(true, 'Opgeslagen in Firebase');
       return true;
     } catch (e) {
@@ -1012,6 +1056,7 @@
         DATA = decodeFromFirestore(d.items);
         zorgVoorIds();
         if (d.componenten) pasComponentenToe(d.componenten);
+        if (Array.isArray(d.klanten)) { KLANTEN = d.klanten; try { localStorage.setItem(KLANT_KEY, JSON.stringify(KLANTEN)); } catch (e) {} }
         bewaarLokaal();
         setSyncDot(true, snap.metadata.fromCache ? 'Offline (uit cache)' : 'Verbonden');
         buildMatrix();
@@ -1153,6 +1198,7 @@
         if (!confirm('Alle huidige gegevens vervangen door deze backup (' + mengsels.length + ' mengsels)?')) return;
         DATA = mengsels;
         zorgVoorIds();
+        if (Array.isArray(parsed.klanten)) { KLANTEN = parsed.klanten; bewaarKlanten(); }
         if (parsed.componenten && Array.isArray(parsed.componenten)) { COMPONENTS = parsed.componenten; saveComponents(); buildFixedColorRows(); }
         syncToFirestore();
         buildMatrix();
@@ -1203,7 +1249,20 @@
     return jaarVan(col) || '';
   }
 
-  function getGrowers() { return [...new Set(DATA.map(d => d.grower))]; }
+  // Klantenlijst (beheerd via "Klanten"), aangevuld met klanten uit de mengsels.
+  const KLANT_KEY = 'potgrond-klanten';
+  let KLANTEN = [];
+  try { const rk = JSON.parse(localStorage.getItem(KLANT_KEY) || '[]'); if (Array.isArray(rk)) KLANTEN = rk; } catch (e) {}
+  function klantenLijst() {
+    const set = new Set(KLANTEN.filter(Boolean));
+    DATA.forEach(d => { if (d.grower && !isOpKleurGrower(d.grower)) set.add(d.grower); });
+    return [...set].sort((a, b) => a.localeCompare(b, 'nl', { sensitivity: 'base', numeric: true }));
+  }
+  function bewaarKlanten() {
+    KLANTEN = klantenLijst();
+    try { localStorage.setItem(KLANT_KEY, JSON.stringify(KLANTEN)); } catch (e) {}
+  }
+  function getGrowers() { return klantenLijst(); }
 
   function groupByKlant(data) {
     const sorted = [...data].sort((a, b) => {
@@ -1788,14 +1847,14 @@
   function fillFKlantSelect() {
     const current = fKlantSelect.value;
     fKlantSelect.innerHTML = '';
+    const leeg = document.createElement('option');
+    leeg.value = ''; leeg.textContent = '— Kies een klant —';
+    fKlantSelect.appendChild(leeg);
     getGrowers().forEach(g => {
       const opt = document.createElement('option');
       opt.value = g; opt.textContent = g;
       fKlantSelect.appendChild(opt);
     });
-    const newOpt = document.createElement('option');
-    newOpt.value = NEW_VALUE; newOpt.textContent = '➕ Nieuwe klant toevoegen';
-    fKlantSelect.appendChild(newOpt);
     if (current && [...fKlantSelect.options].some(o => o.value === current)) fKlantSelect.value = current;
   }
 
@@ -1803,19 +1862,25 @@
     const g = fKlantSelect.value;
     const current = fRasSelect.value;
     fRasSelect.innerHTML = '';
-    if (g !== NEW_VALUE) {
-      [...new Set(DATA.filter(d => d.grower === g).map(d => d.ras))].forEach(ras => {
+    const nieuwOpt = document.createElement('option');
+    nieuwOpt.value = NEW_VALUE; nieuwOpt.textContent = '➕ Nieuw mengsel';
+    fRasSelect.appendChild(nieuwOpt);
+    const bestaand = g && g !== NEW_VALUE ? [...new Set(DATA.filter(d => d.grower === g).map(d => d.ras))] : [];
+    if (bestaand.length) {
+      const grp = document.createElement('optgroup');
+      grp.label = 'Bestaand mengsel bewerken';
+      bestaand.forEach(ras => {
         const opt = document.createElement('option');
         opt.value = ras; opt.textContent = ras;
-        fRasSelect.appendChild(opt);
+        grp.appendChild(opt);
       });
+      fRasSelect.appendChild(grp);
     }
-    const newOpt = document.createElement('option');
-    newOpt.value = NEW_VALUE; newOpt.textContent = '➕ Nieuw mengsel toevoegen';
-    fRasSelect.appendChild(newOpt);
     const options = [...fRasSelect.options].map(o => o.value);
-    if (g === NEW_VALUE) fRasSelect.value = NEW_VALUE;
+    // Bij een nieuw mengsel: standaard "Nieuw mengsel", nooit vanzelf een bestaand recept openen.
+    if (!editingKey) fRasSelect.value = NEW_VALUE;
     else if (current && options.includes(current)) fRasSelect.value = current;
+    else fRasSelect.value = NEW_VALUE;
   }
 
   function currentGrowerValue() { return fKlantSelect.value === NEW_VALUE ? fKlantNew.value.trim() : fKlantSelect.value; }
@@ -1825,7 +1890,9 @@
     editModal.classList.toggle('op-kleur-mode', isOpKleurGrower(currentGrowerValue()));
   }
   function updateNewWraps() {
-    fKlantNewWrap.style.display = fKlantSelect.value === NEW_VALUE ? '' : 'none';
+    fKlantNewWrap.style.display = 'none';
+    document.getElementById('aanmaakUitleg').style.display = editingKey ? 'none' : '';
+    document.getElementById('klantHint').style.display = editingKey ? 'none' : '';
     fRasNewWrap.style.display = fRasSelect.value === NEW_VALUE ? '' : 'none';
     updateOpKleurMode();
   }
@@ -1854,7 +1921,8 @@
   }
 
   function onComboChange() {
-    if (fKlantSelect.value !== NEW_VALUE && fRasSelect.value !== NEW_VALUE) {
+    const wasBewerken = !!editingKey;
+    if (fKlantSelect.value && fKlantSelect.value !== NEW_VALUE && fRasSelect.value !== NEW_VALUE) {
       const col = findColumn(fKlantSelect.value, fRasSelect.value, null);
       if (col) {
         editingKey = { id: col.id, grower: col.grower, ras: col.ras, jaar: col.laatste_wijziging || '' };
@@ -1863,12 +1931,14 @@
         copyYearBtn.style.display = '';
         newVersionBtn.style.display = '';
         setEditTitle(col);
+        updateNewWraps();
         return;
       }
     }
     editingKey = null;
     updateRenameRow();
-    clearDataFields();
+    updateNewWraps();
+    if (wasBewerken) clearDataFields(); // bij nieuw mengsel blijft ingevulde data staan
     deleteBtn.style.display = 'none';
     copyYearBtn.style.display = 'none';
     newVersionBtn.style.display = 'none';
@@ -1880,7 +1950,7 @@
   function rememberComboValues() { lastKlantVal = fKlantSelect.value; lastRasVal = fRasSelect.value; }
 
   fKlantSelect.addEventListener('change', () => {
-    if (editingKey && !confirm('Je wijzigt de klant van een bestaand recept. Klopt dit?')) {
+    if (editingKey && !confirm('Dit recept naar een andere klant verplaatsen?\n\n(Een klantnaam wijzigen doe je via 👥 Klanten.)')) {
       fKlantSelect.value = lastKlantVal;
       return;
     }
@@ -1898,13 +1968,16 @@
 
   function openModal(grower, ras, id) {
     copyMode = false;
+    clearDataFields();
+    fRasNew.value = '';
     if (id) {
       const rec = DATA.find(d => d.id === id);
       if (rec) { grower = rec.grower; ras = rec.ras; }
     }
     const jaar = id;
     fillFKlantSelect();
-    fKlantSelect.value = grower || NEW_VALUE;
+    editingKey = id ? { id } : null;
+    fKlantSelect.value = grower || '';
     fillFRasSelect();
     if (ras) fRasSelect.value = ras; else if (!grower) fRasSelect.value = NEW_VALUE;
     updateNewWraps();
@@ -1924,8 +1997,9 @@
       onComboChange();
     }
     rememberComboValues();
+    updateNewWraps();
     modalOverlay.style.display = 'flex';
-    if (!grower) fKlantNew.focus();
+    if (!grower) fKlantSelect.focus();
   }
   function closeModal() { modalOverlay.style.display = 'none'; }
 
@@ -1948,7 +2022,11 @@
     const rawGrower = currentGrowerValue();
     const grower = isOpKleurGrower(rawGrower) ? OP_KLEUR_KLANT : rawGrower;
     const ras = currentRasValue();
-    if (!grower || !ras) { alert('Vul in elk geval Klant en Mengsel in.'); return; }
+    if (!grower) { alert('Kies eerst een klant (stap 1).'); fKlantSelect.focus(); return; }
+    if (!ras) { alert('Typ een naam voor het mengsel (stap 2).'); fRasNew.focus(); return; }
+    if (!editingKey && fRasSelect.value === NEW_VALUE && DATA.some(d => d.grower === grower && d.ras === ras)) {
+      if (!confirm(grower + ' heeft al een mengsel "' + ras + '".\n\nOpslaan als nieuwe versie van dat mengsel?')) return;
+    }
 
     const isOpKleur = isOpKleurGrower(grower);
 
@@ -2006,6 +2084,7 @@
     if (zelfdeDatum && !confirm('Er is al een versie van "' + grower + ' ' + ras + '" bevestigd op ' + newCol.bevestigd + '.\n\nToch opslaan als extra versie?')) return;
     if (bewerkId) DATA = DATA.filter(d => d.id !== bewerkId);
     DATA.push(newCol);
+    if (!KLANTEN.includes(grower)) bewaarKlanten();
     copyMode = false;
 
     buildMatrix();
@@ -2022,6 +2101,83 @@
     buildMatrix();
     closeModal();
     syncToFirestore();
+  });
+
+  // ---------- Klanten beheren ----------
+  const klantOverlay = document.getElementById('klantOverlay');
+  const klantRowsEl = document.getElementById('klantRows');
+  let klantVanuitMengsel = false;
+
+  function addKlantRow(naam) {
+    const row = document.createElement('div');
+    row.className = 'klant-row';
+    row.dataset.orig = naam || '';
+    const n = naam ? DATA.filter(d => d.grower === naam).length : 0;
+    row.innerHTML = '<input type="text" class="klant-name" placeholder="Naam klant" value="' + escapeAttr(naam || '') + '">' +
+      '<span class="klant-aantal">' + (n ? n + ' recept' + (n === 1 ? '' : 'en') : '') + '</span>' +
+      '<button type="button" class="ce-remove" title="Verwijderen">&#10005;</button>';
+    row.querySelector('.ce-remove').addEventListener('click', () => {
+      if (n) { alert('"' + naam + '" heeft ' + n + ' recept(en). Verwijder eerst die recepten, of geef de klant een andere naam.'); return; }
+      row.remove();
+    });
+    klantRowsEl.appendChild(row);
+    return row;
+  }
+  function openKlantModal(vanuitMengsel) {
+    klantVanuitMengsel = !!vanuitMengsel;
+    klantRowsEl.innerHTML = '';
+    klantenLijst().forEach(k => addKlantRow(k));
+    klantOverlay.style.display = 'flex';
+    if (klantVanuitMengsel) addKlantRow('').querySelector('.klant-name').focus();
+  }
+  function closeKlantModal() { klantOverlay.style.display = 'none'; }
+
+  document.getElementById('klantBtn').addEventListener('click', () => openKlantModal(false));
+  document.getElementById('klantBeheerLink').addEventListener('click', () => openKlantModal(true));
+  document.getElementById('klantClose').addEventListener('click', closeKlantModal);
+  document.getElementById('klantCancelBtn').addEventListener('click', closeKlantModal);
+  klantOverlay.addEventListener('click', (e) => { if (e.target === klantOverlay) closeKlantModal(); });
+  document.getElementById('klantAddBtn').addEventListener('click', () => addKlantRow('').querySelector('.klant-name').focus());
+
+  document.getElementById('klantSaveBtn').addEventListener('click', () => {
+    const rows = [...klantRowsEl.querySelectorAll('.klant-row')];
+    const nieuw = [];
+    const namen = new Set();
+    let laatsteNieuwe = '';
+    for (const r of rows) {
+      const n = r.querySelector('.klant-name').value.trim();
+      const orig = r.dataset.orig;
+      if (!n) {
+        if (orig && DATA.some(d => d.grower === orig)) { alert('De naam van "' + orig + '" mag niet leeg zijn.'); return; }
+        continue;
+      }
+      if (namen.has(n.toLowerCase())) { alert('"' + n + '" staat er twee keer in.'); return; }
+      namen.add(n.toLowerCase());
+      nieuw.push({ n, orig });
+      if (!orig) laatsteNieuwe = n;
+    }
+    let gewijzigd = false;
+    nieuw.forEach(k => {
+      if (k.orig && k.orig !== k.n) {
+        DATA.forEach(d => { if (d.grower === k.orig) { d.grower = k.n; d.full = k.n + ' ' + d.ras; gewijzigd = true; } });
+        if (selKlant.has(k.orig)) { selKlant.delete(k.orig); selKlant.add(k.n); }
+      }
+    });
+    KLANTEN = nieuw.map(k => k.n);
+    bewaarKlanten();
+    syncToFirestore();
+    buildMatrix();
+    closeKlantModal();
+    showSaveToast('Klanten opgeslagen ✓', false);
+    // Terug naar het mengselscherm: nieuwe klant meteen kiezen
+    if (modalOverlay.style.display === 'flex') {
+      const huidig = fKlantSelect.value;
+      fillFKlantSelect();
+      const kies = klantVanuitMengsel && laatsteNieuwe ? laatsteNieuwe : huidig;
+      if ([...fKlantSelect.options].some(o => o.value === kies)) fKlantSelect.value = kies;
+      fillFRasSelect(); updateNewWraps(); rememberComboValues();
+      if (!editingKey && fRasSelect.value === NEW_VALUE) fRasNew.focus();
+    }
   });
 
   // ---------- Namen wijzigen ----------
@@ -2041,7 +2197,8 @@
     showSaveToast('Naam gewijzigd ✓', false);
   }
 
-  document.getElementById('renameKlantBtn').addEventListener('click', () => {
+  const renameKlantBtn = document.getElementById('renameKlantBtn');
+  if (renameKlantBtn) renameKlantBtn.addEventListener('click', () => {
     if (!editingKey) return;
     const oud = editingKey.grower;
     const nieuw = (prompt('Nieuwe klantnaam (geldt voor alle mengsels van "' + oud + '"):', oud) || '').trim();
@@ -2123,7 +2280,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.13';
+  const APP_VERSIE = '0.14';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
