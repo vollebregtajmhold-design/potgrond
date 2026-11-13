@@ -465,8 +465,8 @@
   footer { color: #E2E5E8; }
 
   /* Klanten en uitleg */
-  .klant-row { display: grid; grid-template-columns: 1fr auto 30px; gap: 6px; align-items: center; margin-bottom: 5px; }
-  .panel .klant-row input { width: 100%; font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
+  .klantbeheer-row { display: grid; grid-template-columns: 1fr auto 30px; gap: 6px; align-items: center; margin-bottom: 5px; }
+  .panel .klantbeheer-row input { width: 100%; font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
   .klant-aantal { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; }
   .uitleg { background: #E3ECFA; border: 1px solid #B9CDEE; border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; font-size: 13px; color: #163E6E; }
   .uitleg ol { margin: 4px 0 0; padding-left: 20px; }
@@ -677,7 +677,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.14 — 13 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.15 — 13 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -2110,7 +2110,7 @@
 
   function addKlantRow(naam) {
     const row = document.createElement('div');
-    row.className = 'klant-row';
+    row.className = 'klantbeheer-row';
     row.dataset.orig = naam || '';
     const n = naam ? DATA.filter(d => d.grower === naam).length : 0;
     row.innerHTML = '<input type="text" class="klant-name" placeholder="Naam klant" value="' + escapeAttr(naam || '') + '">' +
@@ -2140,7 +2140,7 @@
   document.getElementById('klantAddBtn').addEventListener('click', () => addKlantRow('').querySelector('.klant-name').focus());
 
   document.getElementById('klantSaveBtn').addEventListener('click', () => {
-    const rows = [...klantRowsEl.querySelectorAll('.klant-row')];
+    const rows = [...klantRowsEl.querySelectorAll('.klantbeheer-row')];
     const nieuw = [];
     const namen = new Set();
     let laatsteNieuwe = '';
@@ -2280,7 +2280,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.14';
+  const APP_VERSIE = '0.15';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
