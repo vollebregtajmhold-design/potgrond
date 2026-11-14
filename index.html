@@ -546,7 +546,7 @@
   .kaart-overlay { position: fixed; inset: 0; z-index: 130; background: rgba(20,20,30,.6); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 14px 10px 30px; }
   .kaart-wrap { width: 100%; max-width: 480px; }
   .kaart { background: #FFFFFF; color: #111; border-radius: 6px; overflow: hidden; font-family: 'Inter', system-ui, sans-serif;
-    border-top: 6px solid var(--blauw); border-left: 6px solid var(--groen-rand); border-bottom: 7px solid var(--roze); }
+    border-top: 6px solid var(--blauw); border-left: 6px solid var(--groen-rand); border-right: 6px solid var(--groen-rand); border-bottom: 7px solid var(--roze); }
   .kaart-kop { background: var(--paars); color: #FFF; padding: 12px 16px 12px; }
   .kaart-kop .k-klant { font-size: 14px; opacity: .85; font-weight: 600; }
   .kaart-kop .k-naam { font-size: 24px; font-weight: 800; line-height: 1.15; margin-top: 2px; font-family: 'Fraunces', Georgia, serif; }
@@ -853,7 +853,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.28 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.30 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1102,7 +1102,7 @@
 
   // Standaard componenten (met eenheid). Aan te passen via "Componenten beheren".
   const COMP_KEY = 'potgrond-componenten';
-  const EENHEDEN = ['m3', 'Kg', 'L', 'g', 'stuks', '%', 'stand', 'min', 'sec', '°C'];
+  const EENHEDEN = ['', 'm3', 'Kg', 'L', 'g', 'stuks', '%', 'stand', 'min', 'sec', '°C'];  // '' = geen eenheid (bijv. pH)
   const DEFAULT_COMPONENTS = [
     { n: "Houtvezel middel", e: "m3", t: "grondstof" },
     { n: "Houtvezel fijn", e: "m3", t: "grondstof" },
@@ -1194,7 +1194,7 @@
   function downloadCsv() {
     try {
       const headers = ['Klant', 'Mengsel', 'Jaar', 'Aanvraag', 'Bevestigd']
-        .concat(MASTER_COLORS.map(n => { const cc = (COMPONENTS.find(x => x.n === n) || {}).c; return (cc ? '[' + cc + '] ' : '') + n + ' (' + eenheidVan(n) + ')'; }))
+        .concat(MASTER_COLORS.map(n => { const cc = (COMPONENTS.find(x => x.n === n) || {}).c; const eh2 = eenheidVan(n); return (cc ? '[' + cc + '] ' : '') + n + (eh2 ? ' (' + eh2 + ')' : ''); }))
         .concat(['Overige componenten']);
       const csvEscape = (val) => {
         const s = val === null || val === undefined ? '' : String(val);
@@ -1892,7 +1892,7 @@
   function compRowHtml(c) {
     const isG = c.t === 'grondstof';
     const opties = EENHEDEN.concat(EENHEDEN.includes(c.e) || !c.e ? [] : [c.e])
-      .map(e => '<option' + ((isG ? '%' : c.e) === e ? ' selected' : '') + '>' + escapeAttr(e) + '</option>').join('');
+      .map(e => '<option value="' + escapeAttr(e) + '"' + ((isG ? '%' : (c.e || '')) === e ? ' selected' : '') + '>' + (e ? escapeAttr(e) : '(geen)') + '</option>').join('');
     return '<input type="text" class="comp-name" placeholder="Naam" value="' + escapeAttr(c.n) + '">' +
       '<input type="text" class="comp-code" placeholder="code" title="Eigen code, bijv. voor importeren uit een ander bestand" value="' + escapeAttr(c.c || '') + '">' +
       '<select class="comp-type"><option value="grondstof"' + (isG ? ' selected' : '') + '>Grondstof</option><option value="bemesting"' + (c.t === 'bemesting' ? ' selected' : '') + '>Bemesting</option>' +
@@ -1916,7 +1916,7 @@
       if (row.classList.contains('oms-open')) omsTekst.focus();
     });
     omsTekst.addEventListener('input', () => omsBtn.classList.toggle('heeft', !!omsTekst.value.trim()));
-    row.dataset.eenheid = c.e && c.e !== '%' ? c.e : 'Kg';
+    row.dataset.eenheid = c.e === '' ? '' : (c.e && c.e !== '%' ? c.e : 'Kg');
     const typeSel = row.querySelector('.comp-type');
     const unitSel = row.querySelector('.comp-unit');
     unitSel.addEventListener('change', () => { if (unitSel.value !== '%') row.dataset.eenheid = unitSel.value; });
@@ -2927,7 +2927,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.28';
+  const APP_VERSIE = '0.30';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
