@@ -464,6 +464,29 @@
   #appFooter { text-align: center; }
   footer { color: #E2E5E8; }
 
+  /* Pop-ups: gebroken wit, invoervelden wit met zwart randje */
+  .modal { --surface: #F3EFE8; --border-panel: #D9D3C8; background: #F3EFE8; }
+  .modal .panel { background: #F3EFE8; border-color: #D9D3C8; }
+  .modal .kleuren-sticky-head { background: #F3EFE8; }
+  .modal .panel select, .modal .panel input[type="text"], .modal .panel input[type="number"],
+  .modal .panel input[type="date"], .modal .panel textarea,
+  .modal .color-fixed-row input, .modal .color-edit-row input,
+  .modal .comp-row input, .modal .comp-row select, .modal .klantbeheer-row input {
+    background: #FFFFFF; border: 1px solid #000000;
+  }
+  .modal .color-fixed-row input:not(:placeholder-shown) { background: #E3ECFA; border: 1.5px solid var(--blauw); font-weight: 700; }
+  .modal .panel select:disabled { background: #EEEEEE; }
+  .modal .modal-actions { background: #F3EFE8; border-top: 1px solid #D9D3C8; }
+
+  /* Huisstijlkader om pop-ups: blauw boven, groen links, roze onder */
+  .modal {
+    border-radius: 6px;
+    border-top: 5px solid var(--blauw);
+    border-left: 5px solid var(--groen-rand);
+    border-bottom: 6px solid var(--roze);
+    box-shadow: 0 14px 36px -10px rgba(0,0,0,0.55);
+  }
+
   /* Klanten en uitleg */
   .klantbeheer-row { display: grid; grid-template-columns: 1fr auto 30px; gap: 6px; align-items: center; margin-bottom: 5px; }
   .panel .klantbeheer-row input { width: 100%; font-family: inherit; font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; }
@@ -677,7 +700,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.15 — 13 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.17 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -691,7 +714,7 @@
         <b>Zo maak je een mengsel:</b>
         <ol>
           <li>Kies de <b>klant</b></li>
-          <li>Typ een <b>naam</b> voor het mengsel</li>
+          <li>Typ de <b>naam</b> van het mengsel</li>
           <li>Vul de <b>datums</b> in</li>
           <li>Vul de <b>grondstoffen</b> in (samen 100%) en de <b>bemesting</b></li>
           <li>Klik op <b>Opslaan</b></li>
@@ -703,8 +726,8 @@
             <label for="fKlantSelect"><span class="stapnr">1</span> Klant</label>
             <select id="fKlantSelect"></select>
           </div>
-          <div class="field">
-            <label for="fRasSelect"><span class="stapnr">2</span> Mengsel</label>
+          <div class="field" id="fRasSelectWrap">
+            <label for="fRasSelect">Mengsel</label>
             <select id="fRasSelect"></select>
           </div>
         </div>
@@ -717,7 +740,7 @@
           <input type="text" id="fKlantNew" placeholder="bijv. Kwekerij De Groot">
         </div>
         <div class="field" id="fRasNewWrap" style="display:none">
-          <label for="fRasNew">Naam van het nieuwe mengsel</label>
+          <label for="fRasNew"><span class="stapnr">2</span> Naam mengsel</label>
           <input type="text" id="fRasNew" placeholder="bijv. Potgrond Universeel">
         </div>
       </div>
@@ -1862,25 +1885,24 @@
     const g = fKlantSelect.value;
     const current = fRasSelect.value;
     fRasSelect.innerHTML = '';
-    const nieuwOpt = document.createElement('option');
-    nieuwOpt.value = NEW_VALUE; nieuwOpt.textContent = '➕ Nieuw mengsel';
-    fRasSelect.appendChild(nieuwOpt);
-    const bestaand = g && g !== NEW_VALUE ? [...new Set(DATA.filter(d => d.grower === g).map(d => d.ras))] : [];
-    if (bestaand.length) {
-      const grp = document.createElement('optgroup');
-      grp.label = 'Bestaand mengsel bewerken';
+    if (!editingKey) {
+      const nieuwOpt = document.createElement('option');
+      nieuwOpt.value = NEW_VALUE; nieuwOpt.textContent = 'Nieuw mengsel';
+      fRasSelect.appendChild(nieuwOpt);
+    } else {
+      const bestaand = g && g !== NEW_VALUE ? [...new Set(DATA.filter(d => d.grower === g).map(d => d.ras))] : [];
+      if (editingKey.ras && !bestaand.includes(editingKey.ras)) bestaand.unshift(editingKey.ras);
       bestaand.forEach(ras => {
         const opt = document.createElement('option');
         opt.value = ras; opt.textContent = ras;
-        grp.appendChild(opt);
+        fRasSelect.appendChild(opt);
       });
-      fRasSelect.appendChild(grp);
     }
     const options = [...fRasSelect.options].map(o => o.value);
     // Bij een nieuw mengsel: standaard "Nieuw mengsel", nooit vanzelf een bestaand recept openen.
     if (!editingKey) fRasSelect.value = NEW_VALUE;
     else if (current && options.includes(current)) fRasSelect.value = current;
-    else fRasSelect.value = NEW_VALUE;
+    else if (editingKey.ras && options.includes(editingKey.ras)) fRasSelect.value = editingKey.ras;
   }
 
   function currentGrowerValue() { return fKlantSelect.value === NEW_VALUE ? fKlantNew.value.trim() : fKlantSelect.value; }
@@ -1893,7 +1915,8 @@
     fKlantNewWrap.style.display = 'none';
     document.getElementById('aanmaakUitleg').style.display = editingKey ? 'none' : '';
     document.getElementById('klantHint').style.display = editingKey ? 'none' : '';
-    fRasNewWrap.style.display = fRasSelect.value === NEW_VALUE ? '' : 'none';
+    fRasNewWrap.style.display = !editingKey ? '' : 'none';
+    document.getElementById('fRasSelectWrap').style.display = editingKey ? '' : 'none';
     updateOpKleurMode();
   }
 
@@ -1976,7 +1999,7 @@
     }
     const jaar = id;
     fillFKlantSelect();
-    editingKey = id ? { id } : null;
+    editingKey = id ? { id, grower, ras } : null;
     fKlantSelect.value = grower || '';
     fillFRasSelect();
     if (ras) fRasSelect.value = ras; else if (!grower) fRasSelect.value = NEW_VALUE;
@@ -2280,7 +2303,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.15';
+  const APP_VERSIE = '0.17';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
