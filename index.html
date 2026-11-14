@@ -542,6 +542,47 @@
     .comp-info .ci-sluit { font-size: 22px !important; top: 8px; right: 8px; }
   }
 
+  /* Receptkaart */
+  .kaart-overlay { position: fixed; inset: 0; z-index: 130; background: rgba(20,20,30,.6); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 14px 10px 30px; }
+  .kaart-wrap { width: 100%; max-width: 480px; }
+  .kaart { background: #FFFFFF; color: #111; border-radius: 6px; overflow: hidden; font-family: 'Inter', system-ui, sans-serif;
+    border-top: 6px solid var(--blauw); border-left: 6px solid var(--groen-rand); border-bottom: 7px solid var(--roze); }
+  .kaart-kop { background: var(--paars); color: #FFF; padding: 12px 16px 12px; }
+  .kaart-kop .k-klant { font-size: 14px; opacity: .85; font-weight: 600; }
+  .kaart-kop .k-naam { font-size: 24px; font-weight: 800; line-height: 1.15; margin-top: 2px; font-family: 'Fraunces', Georgia, serif; }
+  .kaart-kop .k-datum { margin-top: 6px; font-size: 13.5px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .kaart-kop .k-vink { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; background: #5BAE4F; color: #FFF; font-size: 10px; align-items: center; justify-content: center; margin-right: 4px; vertical-align: -2px; }
+  .kaart-body { padding: 10px 14px 12px; }
+  .kaart-sec { background: #D6E8FA; color: #163E6E; font-size: 12.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; padding: 5px 8px; border-radius: 4px; margin: 10px 0 2px; display: flex; justify-content: space-between; }
+  .kaart-sec:first-child { margin-top: 2px; }
+  .kaart-rij { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 8px; border-bottom: 1px solid #E4DED3; font-size: 16px; }
+  .kaart-rij:nth-child(even) { background: #F8F5F0; }
+  .kaart-rij .k-comp { font-weight: 600; }
+  .kaart-rij .k-code { font-size: 11.5px; color: #555B60; font-weight: 400; margin-left: 4px; }
+  .kaart-rij .k-opm { display: block; font-size: 12.5px; color: #8A5A00; font-style: italic; font-weight: 400; }
+  .kaart-rij .k-waarde { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .kaart-totaal { display: flex; justify-content: space-between; padding: 6px 8px; font-weight: 800; font-size: 15px; background: #E3F2E8; border-radius: 4px; margin-top: 3px; }
+  .kaart-totaal.fout { background: #F8D7DA; color: #8A1C2B; }
+  .kaart-notitie { margin-top: 10px; background: #F3EFE8; border: 1px solid #D9D3C8; border-radius: 8px; padding: 8px 10px; font-size: 14.5px; white-space: pre-wrap; }
+  .kaart-notitie b { display: block; font-size: 11.5px; text-transform: uppercase; color: #555B60; margin-bottom: 2px; }
+  .kaart-voet { font-size: 11.5px; color: #777; text-align: center; padding: 6px 10px 10px; }
+  .kaart-acties { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  @media (max-width: 640px), (max-height: 820px) {
+    .kaart-kop { padding: 8px 12px; }
+    .kaart-kop .k-naam { font-size: 20px; }
+    .kaart-kop .k-datum { margin-top: 3px; font-size: 12.5px; }
+    .kaart-body { padding: 6px 10px 8px; }
+    .kaart-sec { margin: 6px 0 1px; padding: 3px 7px; font-size: 11.5px; }
+    .kaart-rij { padding: 3px 7px; font-size: 14.5px; }
+    .kaart-rij .k-opm { font-size: 11.5px; }
+    .kaart-totaal { padding: 3px 7px; font-size: 14px; }
+    .kaart-notitie { margin-top: 6px; padding: 5px 8px; font-size: 13px; }
+    .kaart-voet { padding: 3px 8px 6px; font-size: 10.5px; }
+    .kaart-overlay { padding-top: 8px; }
+  }
+  .kaart-acties button { flex: 1 1 auto; }
+  .kaart-acties .btn-secondary { background: #FFF; border: 2px solid #000; }
+
   /* Zoeken */
   .zoek-groep { background: #F3EFE8; border: 1px solid #D9D3C8; border-radius: 12px; padding: 8px 12px; margin-bottom: 8px; }
   .zoek-groep h3 { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #163E6E; margin: 2px 0 6px; }
@@ -613,6 +654,12 @@
   }
 
   @media print {
+    body.print-kaart > *:not(#kaartOverlay) { display: none !important; }
+    body.print-kaart #kaartOverlay { position: static !important; background: none !important; padding: 0 !important; display: block !important; }
+    body.print-kaart .kaart-wrap { max-width: 150mm; margin: 0 auto; }
+    body.print-kaart .kaart-acties { display: none !important; }
+    body.print-kaart .kaart, body.print-kaart .kaart * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
     body { padding: 0; background: #FFFFFF; }
     .toolbar, .header-stats, footer, .modal-overlay, .save-toast { display: none !important; }
     .wrap { max-width: none; }
@@ -683,6 +730,16 @@
 <div class="save-toast" id="saveToast"></div>
 
 <div class="comp-info" id="compInfo" style="display:none"></div>
+<div class="kaart-overlay" id="kaartOverlay" style="display:none">
+  <div class="kaart-wrap">
+    <div class="kaart" id="kaart"></div>
+    <div class="kaart-acties">
+      <button type="button" class="btn-primary" id="kaartDeel">&#128228; Delen als afbeelding</button>
+      <button type="button" class="btn-secondary" id="kaartPrint">&#128424; Printen</button>
+      <button type="button" class="btn-secondary" id="kaartSluit">&#10005; Sluiten</button>
+    </div>
+  </div>
+</div>
 <input type="file" id="importFile" accept=".json,application/json" style="display:none">
 
 <div class="auth-overlay" id="authOverlay">
@@ -796,7 +853,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.27 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.28 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -887,6 +944,7 @@
       <div class="modal-actions-row">
         <button type="button" class="btn-secondary btn-copy-year" id="newVersionBtn" style="display:none">&#128203; Nieuwe versie (kopie)</button>
         <button type="button" class="btn-secondary btn-copy-year" id="copyYearBtn" style="display:none">Kopie naar nieuw jaar</button>
+        <button type="button" class="btn-secondary btn-copy-year" id="kaartBtn" style="display:none">&#128247; Receptkaart</button>
       </div>
       <div class="modal-actions-row">
         <button type="button" class="btn-secondary" id="cancelBtn">Annuleren</button>
@@ -1956,6 +2014,7 @@
   const deleteBtn = document.getElementById('deleteBtn');
   const copyYearBtn = document.getElementById('copyYearBtn');
   const newVersionBtn = document.getElementById('newVersionBtn');
+  const kaartBtn = document.getElementById('kaartBtn');
   const cancelBtn = document.getElementById('cancelBtn');
   const newSerieBtn = document.getElementById('newSerieBtn');
   const modalClose = document.getElementById('modalClose');
@@ -2160,6 +2219,7 @@
         deleteBtn.style.display = '';
         copyYearBtn.style.display = '';
         newVersionBtn.style.display = '';
+        kaartBtn.style.display = '';
         setEditTitle(col);
         updateNewWraps();
         return;
@@ -2172,6 +2232,7 @@
     deleteBtn.style.display = 'none';
     copyYearBtn.style.display = 'none';
     newVersionBtn.style.display = 'none';
+    kaartBtn.style.display = 'none';
     modalTitle.textContent = 'Mengsel aanmaken';
   }
 
@@ -2219,6 +2280,7 @@
         deleteBtn.style.display = '';
         copyYearBtn.style.display = '';
         newVersionBtn.style.display = '';
+        kaartBtn.style.display = '';
         setEditTitle(col);
       } else {
         onComboChange();
@@ -2334,6 +2396,106 @@
     buildMatrix();
     closeModal();
     syncToFirestore();
+  });
+
+  // ---------- Receptkaart ----------
+  const kaartOverlay = document.getElementById('kaartOverlay');
+  let kaartRecept = null;
+  function vandaagTekst() {
+    const d = new Date();
+    return String(d.getDate()).padStart(2, '0') + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + d.getFullYear();
+  }
+  function bouwKaart(col) {
+    const kleuren = col.colors || [];
+    const volgorde = MASTER_COLORS.concat(kleuren.map(c => c[0]).filter(n => !MASTER_COLORS.includes(n)));
+    const rijen = soort => volgorde.filter(n => (soort === 'overig' ? !typeVan(n) : typeVan(n) === soort))
+      .map(n => kleuren.find(c => c[0] === n)).filter(Boolean);
+    const rijHtml = (c, soort) => {
+      const comp = COMPONENTS.find(x => x.n === c[0]) || {};
+      const eh = eenheidVan(c[0]);
+      const waarde = fmtMatrixPct(c[1]) + (soort === 'grondstof' ? '%' : (eh ? ' ' + eh : ''));
+      return '<div class="kaart-rij"><span class="k-comp">' + escapeAttr(c[0]) +
+        (comp.c ? '<span class="k-code">[' + escapeAttr(comp.c) + ']</span>' : '') +
+        (c[3] ? '<span class="k-opm">' + escapeAttr(c[3]) + '</span>' : '') +
+        '</span><span class="k-waarde">' + escapeAttr(waarde) + '</span></div>';
+    };
+    let body = '';
+    const grond = rijen('grondstof');
+    if (grond.length) {
+      const tot = grond.reduce((a, c) => a + (typeof c[1] === 'number' ? c[1] : 0), 0);
+      const fout = Math.abs(tot - 100) > 0.05;
+      body += '<div class="kaart-sec"><span>Grondstoffen</span><span>%</span></div>' + grond.map(c => rijHtml(c, 'grondstof')).join('') +
+        '<div class="kaart-totaal' + (fout ? ' fout' : '') + '"><span>Totaal</span><span>' + fmtMatrixPct(tot) + '%' + (fout ? ' ⚠' : ' ✓') + '</span></div>';
+    }
+    [['bemesting', 'Bemesting'], ['instelling', 'Instellingen'], ['overig', 'Overig']].forEach(([soort, titel]) => {
+      const r = rijen(soort);
+      if (r.length) body += '<div class="kaart-sec"><span>' + titel + '</span></div>' + r.map(c => rijHtml(c, soort)).join('');
+    });
+    if (col.notitie) body += '<div class="kaart-notitie"><b>Notitie</b>' + escapeAttr(col.notitie) + '</div>';
+    if (col.aantallen_verwacht) body += '<div class="kaart-notitie"><b>Aantallen verwacht</b>' + escapeAttr(col.aantallen_verwacht) + '</div>';
+    const kort = d => d ? String(d).replace(/^(\d{2})-(\d{2})-\d{2}(\d{2})$/, '$1-$2-$3') : '';
+    const datums = (col.bevestigd ? '<span><span class="k-vink">&#10003;</span>Bevestigd ' + escapeAttr(kort(col.bevestigd)) + (col.bevestigd_door ? ' door ' + escapeAttr(col.bevestigd_door) : '') + '</span>' : '<span>Nog niet bevestigd</span>') +
+      (col.aanvraag ? '<span>Aanvraag ' + escapeAttr(kort(col.aanvraag)) + '</span>' : '');
+    return '<div class="kaart-kop"><div class="k-klant">' + escapeAttr(col.grower) + '</div><div class="k-naam">' + escapeAttr(col.ras) + '</div><div class="k-datum">' + datums + '</div></div>' +
+      '<div class="kaart-body">' + (body || '<p>Nog geen componenten ingevuld.</p>') + '</div>' +
+      '<div class="kaart-voet">Potgrond Recepten · ' + vandaagTekst() + '</div>';
+  }
+  function openKaart(col) {
+    kaartRecept = col;
+    document.getElementById('kaart').innerHTML = bouwKaart(col);
+    kaartOverlay.style.display = 'flex';
+    kaartOverlay.scrollTop = 0;
+  }
+  function sluitKaart() { kaartOverlay.style.display = 'none'; document.body.classList.remove('print-kaart'); }
+  kaartBtn.addEventListener('click', () => {
+    const col = editingKey && currentEditColumnByKey(editingKey);
+    if (!col) return;
+    openKaart(col);
+  });
+  document.getElementById('kaartSluit').addEventListener('click', sluitKaart);
+  kaartOverlay.addEventListener('click', (e) => { if (e.target === kaartOverlay) sluitKaart(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && kaartOverlay.style.display !== 'none') sluitKaart(); });
+  document.getElementById('kaartPrint').addEventListener('click', () => {
+    document.body.classList.add('print-kaart');
+    window.print();
+    setTimeout(() => document.body.classList.remove('print-kaart'), 500);
+  });
+  function laadHtml2Canvas() {
+    if (window.html2canvas) return Promise.resolve(window.html2canvas);
+    return new Promise((ok, fout) => {
+      const sc = document.createElement('script');
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      sc.onload = () => ok(window.html2canvas);
+      sc.onerror = fout;
+      document.head.appendChild(sc);
+    });
+  }
+  document.getElementById('kaartDeel').addEventListener('click', async () => {
+    if (!kaartRecept) return;
+    const knop = document.getElementById('kaartDeel');
+    const oud = knop.innerHTML;
+    knop.disabled = true; knop.textContent = 'Afbeelding maken…';
+    try {
+      const h2c = await laadHtml2Canvas();
+      const canvas = await h2c(document.getElementById('kaart'), { scale: 2, backgroundColor: '#FFFFFF', useCORS: true });
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      const naam = ('Receptkaart ' + kaartRecept.grower + ' ' + kaartRecept.ras).replace(/[\\/:*?"<>|]+/g, '-') + '.png';
+      const file = new File([blob], naam, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: kaartRecept.grower + ' – ' + kaartRecept.ras });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = naam;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        showSaveToast('Afbeelding gedownload ✓', false);
+      }
+    } catch (e) {
+      if (!(e && e.name === 'AbortError')) showSaveToast('Afbeelding maken lukte niet. Maak een schermafbeelding.', true);
+    } finally {
+      knop.disabled = false; knop.innerHTML = oud;
+    }
   });
 
   // ---------- Info-kaartje bij een component ----------
@@ -2765,7 +2927,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.27';
+  const APP_VERSIE = '0.28';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
