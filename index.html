@@ -358,7 +358,7 @@
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px;
   }
   .comp-oms-btn { width: 30px; height: 28px; border-radius: 6px; border: 1px solid #000; background: #FFF; cursor: pointer; font-size: 14px; padding: 0; filter: grayscale(1); opacity: .55; }
-  .comp-oms-btn.heeft { filter: none; opacity: 1; background: #E3ECFA; border-color: var(--blauw); }
+  .comp-oms-btn.heeft { filter: none; opacity: 1; background: #FFD54A; border: 2px solid #B38A00; box-shadow: 0 0 0 2px rgba(255,213,74,.45); }
   .comp-oms { grid-column: 1 / -1; display: none; }
   .comp-row.oms-open .comp-oms { display: block; }
   .panel .comp-row textarea.comp-oms-tekst { width: 100%; font-family: inherit; font-size: 13px; line-height: 1.4; background: #FFF; border: 1px solid #000; border-radius: 6px; padding: 6px 8px; resize: vertical; box-sizing: border-box; }
@@ -519,7 +519,7 @@
   /* Info-kaartje component */
   tbody th.comp-cel { cursor: pointer; }
   tbody th.comp-cel:hover { text-decoration: underline; text-decoration-color: var(--blauw); }
-  .oms-icoon { font-size: 11px; }
+  .oms-icoon { font-size: 11px; background: #FFD54A; border-radius: 4px; padding: 0 2px; }
   .comp-info { position: absolute; z-index: 90; width: 290px; background: #FFF; border-radius: 6px; padding: 10px 12px 12px;
     border-top: 4px solid var(--blauw); border-left: 4px solid var(--groen-rand); border-bottom: 5px solid var(--roze);
     box-shadow: 0 10px 28px -6px rgba(0,0,0,.45); font-size: 13px; color: #111; }
@@ -589,6 +589,13 @@
     #topChrome { margin: -14px -12px 12px; }
     #topChrome header, #topChrome .toolbar { padding-left: 12px; padding-right: 12px; }
     #mobileChromeToggle { background: var(--mint); border: 2px solid var(--mint-rand); border-radius: 8px; }
+    .comp-info { width: min(92vw, 360px); font-size: 16px; padding: 12px 14px 14px; }
+    .comp-info h4 { font-size: 19px; }
+    .comp-info .ci-meta { font-size: 14.5px; }
+    .comp-info .ci-oms { font-size: 16px; line-height: 1.5; padding: 9px 11px; }
+    .comp-info .ci-gebruik { font-size: 14px; }
+    .comp-info .ci-bewerk { font-size: 15px; padding: 8px 12px; }
+    .comp-info .ci-sluit { font-size: 20px; top: 8px; right: 8px; }
     #topChrome header > div { flex-wrap: wrap; max-width: 100%; gap: 8px !important; }
     #topChrome .user-bar { flex-wrap: wrap; max-width: 100%; border-radius: 12px; padding: 6px 8px; }
     #topChrome .user-bar .user-email { flex-basis: 100%; font-size: 12px; }
@@ -779,7 +786,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.23 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.25 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -2340,6 +2347,7 @@
     if (left + breed > window.scrollX + document.documentElement.clientWidth - 8) left = Math.max(8, r.left + window.scrollX);
     let top = r.top + window.scrollY;
     if (left === Math.max(8, r.left + window.scrollX)) top = r.bottom + window.scrollY + 6;
+    left = Math.max(window.scrollX + 8, Math.min(left, window.scrollX + document.documentElement.clientWidth - breed - 8));
     compInfoEl.style.left = left + 'px';
     compInfoEl.style.top = top + 'px';
     compInfoEl.querySelector('.ci-sluit').onclick = sluitCompInfo;
@@ -2747,7 +2755,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.23';
+  const APP_VERSIE = '0.25';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
