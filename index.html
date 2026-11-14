@@ -853,7 +853,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.30 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.31 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -2413,7 +2413,9 @@
     const rijHtml = (c, soort) => {
       const comp = COMPONENTS.find(x => x.n === c[0]) || {};
       const eh = eenheidVan(c[0]);
-      const waarde = fmtMatrixPct(c[1]) + (soort === 'grondstof' ? '%' : (eh ? ' ' + eh : ''));
+      const isKg = soort !== 'grondstof' && String(eh).toLowerCase() === 'kg' && typeof c[1] === 'number';
+      const getal = isKg ? c[1].toFixed(2).replace('.', ',') : fmtMatrixPct(c[1]);  // Kg altijd met 2 decimalen
+      const waarde = getal + (soort === 'grondstof' ? '%' : (eh ? ' ' + eh : ''));
       return '<div class="kaart-rij"><span class="k-comp">' + escapeAttr(c[0]) +
         (comp.c ? '<span class="k-code">[' + escapeAttr(comp.c) + ']</span>' : '') +
         (c[3] ? '<span class="k-opm">' + escapeAttr(c[3]) + '</span>' : '') +
@@ -2927,7 +2929,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.30';
+  const APP_VERSIE = '0.31';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
