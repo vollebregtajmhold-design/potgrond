@@ -352,13 +352,19 @@
 
   .empty-note { padding: 40px 20px; text-align: center; color: var(--text-dim); font-size: 14px; }
 
-  .comp-row { display: grid; grid-template-columns: 1fr 112px 72px 26px 26px 30px; gap: 5px; align-items: center; margin-bottom: 5px; }
+  .comp-row { display: grid; grid-template-columns: 1fr 78px 112px 72px 30px 26px 26px 30px; gap: 5px; align-items: center; margin-bottom: 5px; }
   .panel .comp-row input, .panel .comp-row select {
     width: 100%; font-family: inherit; font-size: 13.5px; color: var(--text);
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px;
   }
+  .comp-oms-btn { width: 30px; height: 28px; border-radius: 6px; border: 1px solid #000; background: #FFF; cursor: pointer; font-size: 14px; padding: 0; filter: grayscale(1); opacity: .55; }
+  .comp-oms-btn.heeft { filter: none; opacity: 1; background: #E3ECFA; border-color: var(--blauw); }
+  .comp-oms { grid-column: 1 / -1; display: none; }
+  .comp-row.oms-open .comp-oms { display: block; }
+  .panel .comp-row textarea.comp-oms-tekst { width: 100%; font-family: inherit; font-size: 13px; line-height: 1.4; background: #FFF; border: 1px solid #000; border-radius: 6px; padding: 6px 8px; resize: vertical; box-sizing: border-box; }
+  .panel .comp-row input.comp-code { font-size: 12.5px; text-align: center; }
   .comp-move { width: 26px; height: 28px; border-radius: 6px; border: 1px solid var(--border-panel); background: var(--surface-2); color: var(--text-dim); font-size: 11px; cursor: pointer; padding: 0; }
-  .comp-head { display: grid; grid-template-columns: 1fr 112px 72px 88px; gap: 5px; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-panel-dim); padding-bottom: 4px; }
+  .comp-head { display: grid; grid-template-columns: 1fr 78px 112px 72px 118px; gap: 5px; font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-panel-dim); padding-bottom: 4px; }
   tbody tr.sec-row th, tbody tr.sec-row td { background: #DCF0E1; color: var(--text); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 8px; }
   tbody tr.tot-row th, tbody tr.tot-row td { background: #EEF7F0; font-weight: 700; }
   tbody tr.tot-row td.fout { background: #F8D7DA; color: #8A1C2B; }
@@ -476,6 +482,67 @@
   }
   .modal .color-fixed-row input:not(:placeholder-shown) { background: #E3ECFA; border: 1.5px solid var(--blauw); font-weight: 700; }
   .modal .panel select:disabled { background: #EEEEEE; }
+  #copyYearBtn { display: none !important; }
+
+  /* Uitleg-venster */
+  .uitleg-overlay { position: fixed; inset: 0; z-index: 120; background: rgba(20,20,30,0.55); display: flex; align-items: flex-start; justify-content: center; padding: 24px 12px; overflow-y: auto; }
+  .uitleg-venster { background: #FFFFFF; width: 100%; max-width: 1140px; border-radius: 6px; overflow: hidden; box-shadow: 0 14px 40px -10px rgba(0,0,0,.6);
+    border-top: 5px solid var(--blauw); border-left: 5px solid var(--groen-rand); border-bottom: 6px solid var(--roze); }
+  .uitleg-kop { display: flex; justify-content: space-between; align-items: center; background: var(--paars); padding: 10px 16px; }
+  .uitleg-kop h2 { margin: 0; color: #FFF; font-size: 16px; font-family: 'Fraunces', Georgia, serif; }
+  .uitleg-kop .modal-close { background: rgba(255,255,255,.15); color: #FFF; }
+  .uitleg-venster { min-width: 0; }
+  .uitleg-schaal { overflow: hidden; width: 100%; }
+  .uitleg-canvas { position: relative; width: 1100px; height: 610px; transform-origin: 0 0; margin: 6px auto 0; }
+  .uitleg-pijlen { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  .uitleg-voet { font-size: 12.5px; color: #3A3F44; margin: 0; padding: 8px 16px 12px; border-top: 1px solid #E3E3E3; }
+  .ux-kader { position: absolute; z-index: 4; background: #EAF5EE; border: 1.5px solid #2F6B4A; border-radius: 10px; padding: 7px 11px; font-size: 12.5px; line-height: 1.35; color: #1E3D2C; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+  .ux-kader b { color: #12301F; }
+  .ux-mock { position: absolute; left: 310px; top: 130px; width: 540px; background: #6B7177; padding: 10px; border-radius: 4px; }
+  .ux-bar { display: flex; gap: 6px; margin-bottom: 8px; }
+  .ux-knop { font-size: 11px; font-weight: 700; background: var(--mint); color: #1E3D2C; border: 1.5px solid var(--mint-rand); border-radius: 6px; padding: 3px 7px; white-space: nowrap; }
+  .ux-knop.ux-blauw { background: var(--blauw); border-color: #164A9C; color: #FFF; }
+  .ux-tabel { width: 100%; border-collapse: collapse; font-size: 12px; background: #F3EFE8; border-top: 4px solid var(--blauw); border-left: 4px solid var(--groen-rand); border-bottom: 5px solid var(--roze); }
+  .ux-tabel th, .ux-tabel td { border: 1px solid #000; padding: 4px 6px; text-align: center; white-space: nowrap; }
+  .ux-tabel td:first-child { text-align: left; font-weight: 700; }
+  .ux-klant th { background: var(--grijs-kop); }
+  .ux-serie th { background: var(--grijs-kop-2); }
+  .ux-datum th { background: #E8E8E8; font-size: 11px; color: #1E3D2C; }
+  .ux-hoek { background: var(--grijs-kop) !important; }
+  .ux-vink { display: inline-flex; width: 12px; height: 12px; border-radius: 50%; background: var(--mint-rand); color: #FFF; font-size: 8px; align-items: center; justify-content: center; margin-right: 3px; }
+  .ux-geel { background: #E8C94A !important; color: #4A3B00; }
+  .ux-sectie td { background: #D6E8FA; color: #163E6E; font-size: 10.5px; text-transform: uppercase; }
+  .ux-totaal td { background: #E3F2E8; font-weight: 700; }
+  .ux-rood { background: #F8D7DA !important; color: #8A1C2B; }
+  .ux-leeg { color: #B9AC9C; }
+
+  /* Info-kaartje component */
+  tbody th.comp-cel { cursor: pointer; }
+  tbody th.comp-cel:hover { text-decoration: underline; text-decoration-color: var(--blauw); }
+  .oms-icoon { font-size: 11px; }
+  .comp-info { position: absolute; z-index: 90; width: 290px; background: #FFF; border-radius: 6px; padding: 10px 12px 12px;
+    border-top: 4px solid var(--blauw); border-left: 4px solid var(--groen-rand); border-bottom: 5px solid var(--roze);
+    box-shadow: 0 10px 28px -6px rgba(0,0,0,.45); font-size: 13px; color: #111; }
+  .comp-info h4 { margin: 0 24px 4px 0; font-size: 14.5px; }
+  .comp-info .ci-meta { font-size: 12px; color: #555B60; margin-bottom: 8px; }
+  .comp-info .ci-meta b { color: #163E6E; }
+  .comp-info .ci-oms { background: #F3EFE8; border: 1px solid #D9D3C8; border-radius: 8px; padding: 7px 9px; white-space: pre-wrap; line-height: 1.4; }
+  .comp-info .ci-leeg { color: #888; font-style: italic; }
+  .comp-info .ci-gebruik { font-size: 12px; color: #555B60; margin-top: 8px; }
+  .comp-info .ci-sluit { position: absolute; top: 6px; right: 6px; border: none; background: none; font-size: 15px; cursor: pointer; color: #555; }
+  .comp-info .ci-bewerk { margin-top: 9px; font-family: inherit; font-size: 12.5px; font-weight: 700; background: var(--mint); color: #1E3D2C; border: 2px solid var(--mint-rand); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+
+  /* Zoeken */
+  .zoek-groep { background: #F3EFE8; border: 1px solid #D9D3C8; border-radius: 12px; padding: 8px 12px; margin-bottom: 8px; }
+  .zoek-groep h3 { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #163E6E; margin: 2px 0 6px; }
+  .zoek-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: left; font-family: inherit; font-size: 13.5px; color: #111; background: #FFFFFF; border: 1px solid #000; border-radius: 8px; padding: 7px 10px; margin-bottom: 5px; cursor: pointer; }
+  .zoek-item:hover { background: #E3ECFA; border-color: var(--blauw); }
+  .zoek-item small { color: #555B60; font-size: 12px; white-space: nowrap; }
+  .zoek-item mark { background: #FFE58A; padding: 0 1px; border-radius: 2px; }
+  .zoek-sub { margin: 0 0 6px 10px; }
+  .zoek-leeg { text-align: center; color: #555B60; font-size: 13.5px; padding: 14px 6px; }
+  .zoek-banner { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; width: fit-content; max-width: 100%; margin: 0 auto 10px; background: #FFE58A; color: #3A2A00; font-weight: 700; font-size: 13.5px; border-radius: 8px; padding: 6px 8px 6px 14px; }
+  .modal-actions .btn-primary:disabled { opacity: .45; cursor: default; box-shadow: none; }
   .modal .modal-actions { background: #F3EFE8; border-top: 1px solid #D9D3C8; }
 
   /* Huisstijlkader om pop-ups: blauw boven, groen links, roze onder */
@@ -522,6 +589,10 @@
     #topChrome { margin: -14px -12px 12px; }
     #topChrome header, #topChrome .toolbar { padding-left: 12px; padding-right: 12px; }
     #mobileChromeToggle { background: var(--mint); border: 2px solid var(--mint-rand); border-radius: 8px; }
+    #topChrome header > div { flex-wrap: wrap; max-width: 100%; gap: 8px !important; }
+    #topChrome .user-bar { flex-wrap: wrap; max-width: 100%; border-radius: 12px; padding: 6px 8px; }
+    #topChrome .user-bar .user-email { flex-basis: 100%; font-size: 12px; }
+    .filter-bar > .btn-clear-filter, .filter-bar > .export-menu { flex: 0 0 auto; }
   }
 
   @media print {
@@ -594,6 +665,7 @@
 
 <div class="save-toast" id="saveToast"></div>
 
+<div class="comp-info" id="compInfo" style="display:none"></div>
 <input type="file" id="importFile" accept=".json,application/json" style="display:none">
 
 <div class="auth-overlay" id="authOverlay">
@@ -685,6 +757,8 @@
             <button type="button" id="csvBtn">&#8681; CSV export</button>
           </div>
         </div>
+        <button type="button" class="btn-clear-filter" id="uitlegBtn" title="Uitleg van de tabel">&#10067; Uitleg</button>
+        <button type="button" class="btn-clear-filter" id="zoekBtn" title="Zoeken op klant, mengsel of component">&#128269; Zoeken</button>
       </div>
       <div class="toolbar-right">
         <button type="button" class="btn-clear-filter" id="klantBtn">&#128101; Klanten</button>
@@ -694,13 +768,18 @@
     </div>
   </div>
 
+  <div class="zoek-banner" id="zoekBanner" style="display:none">
+    <span id="zoekBannerTekst"></span>
+    <button type="button" class="btn-clear-filter" id="zoekBannerWis">&#10005; Zoekfilter wissen</button>
+  </div>
+
   <div class="matrix-shell">
     <div class="matrix-scroll">
       <table id="matrixTable"></table>
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.17 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.23 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -789,13 +868,98 @@
     </div>
     <div class="modal-actions">
       <div class="modal-actions-row">
-        <button type="button" class="btn-secondary btn-copy-year" id="newVersionBtn" style="display:none">Nieuwe versie (zelfde jaar)</button>
+        <button type="button" class="btn-secondary btn-copy-year" id="newVersionBtn" style="display:none">&#128203; Nieuwe versie (kopie)</button>
         <button type="button" class="btn-secondary btn-copy-year" id="copyYearBtn" style="display:none">Kopie naar nieuw jaar</button>
       </div>
       <div class="modal-actions-row">
         <button type="button" class="btn-secondary" id="cancelBtn">Annuleren</button>
         <button type="button" class="btn-danger" id="deleteBtn" style="display:none">Verwijderen</button>
         <button type="button" class="btn-primary" id="saveBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="uitleg-overlay" id="uitlegOverlay" style="display:none">
+  <div class="uitleg-venster">
+    <div class="uitleg-kop">
+      <h2>&#10067; Uitleg van de tabel</h2>
+      <button type="button" class="modal-close" id="uitlegClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="uitleg-schaal" id="uitlegSchaal">
+      <div class="uitleg-canvas" id="uitlegCanvas">
+        <svg class="uitleg-pijlen" id="uitlegPijlen" width="1100" height="610">
+          <defs><marker id="pijlpunt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2F6B4A"/></marker></defs>
+        </svg>
+
+        <div class="ux-mock" id="uxMock">
+          <div class="ux-bar">
+            <span class="ux-knop" id="ux-jaar">Jaar &#9662;</span>
+            <span class="ux-knop ux-blauw" id="ux-nieuwste">Nieuwste: Ja</span>
+            <span class="ux-knop" id="ux-zoek">&#128269; Zoeken</span>
+            <span class="ux-knop ux-blauw" id="ux-nieuw">+ Mengsel aanmaken</span>
+          </div>
+          <table class="ux-tabel">
+            <tr class="ux-klant"><th class="ux-hoek" rowspan="3"></th><th colspan="2">Vollebregt</th><th id="ux-klant">Bolk</th></tr>
+            <tr class="ux-serie"><th id="ux-naam">AUX 6cm</th><th class="ux-geel" id="ux-geel">AUY 10/13</th><th>Mix A</th></tr>
+            <tr class="ux-datum"><th id="ux-datum"><span class="ux-vink">&#10003;</span>08-06-26</th><th id="ux-onbevestigd">&ndash;</th><th id="ux-datum2"><span class="ux-vink">&#10003;</span>01-02-26</th></tr>
+            <tr class="ux-sectie"><td id="ux-sectie">GRONDSTOFFEN (%)</td><td colspan="3"></td></tr>
+            <tr><td>Veen Fractie 1</td><td id="ux-procent">90%</td><td>80%</td><td class="ux-leeg">&ndash;</td></tr>
+            <tr><td>Perliet grof</td><td>10%</td><td class="ux-leeg">&ndash;</td><td>20%</td></tr>
+            <tr><td>Veen Fractie 0</td><td class="ux-leeg">&ndash;</td><td class="ux-leeg">&ndash;</td><td>80%</td></tr>
+            <tr class="ux-totaal"><td>Totaal grondstoffen</td><td>100%</td><td class="ux-rood" id="ux-rood">80% &#9888;</td><td>100%</td></tr>
+            <tr class="ux-sectie"><td id="ux-sectie2">BEMESTING</td><td colspan="3"></td></tr>
+            <tr><td>Kalk 5% MGO <small>(Kg)</small></td><td id="ux-kg">5,9</td><td>6</td><td class="ux-leeg" id="ux-streep">&ndash;</td></tr>
+          </table>
+        </div>
+
+        <div class="ux-kader" data-doel="ux-jaar" data-kant="r" style="left:20px;top:40px">
+          <b>Kies wat je ziet:</b><br>jaren, klant, mengsel.<br><i>Nieuwste: Ja</i> = per mengsel<br>alleen de laatste versie</div>
+        <div class="ux-kader" data-doel="ux-zoek" data-kant="b" style="left:430px;top:22px">
+          <b>Zoeken:</b><br>op klant, mengsel<br>of component</div>
+        <div class="ux-kader" data-doel="ux-nieuw" data-kant="b" style="left:640px;top:22px">
+          <b>Nieuw mengsel:</b><br>kies klant, typ naam,<br>vul hoeveelheden in</div>
+        <div class="ux-kader" data-doel="ux-naam" data-kant="r" style="left:20px;top:205px">
+          <b>Klik op een mengselnaam:</b><br>recept bekijken, wijzigen<br>of een nieuwe versie (kopie)</div>
+        <div class="ux-kader" data-doel="ux-procent" data-kant="r" style="left:20px;top:320px">
+          <b>Grondstoffen:</b><br>in procenten,<br>samen altijd 100%</div>
+        <div class="ux-kader" data-doel="ux-sectie2" data-kant="r" style="left:20px;top:425px">
+          <b>Blauwe balk:</b><br>Grondstoffen (in %),<br>Bemesting, Instellingen</div>
+        <div class="ux-kader" data-doel="ux-kg" data-kant="t" style="left:420px;top:520px">
+          <b>Bemesting:</b><br>als waarde, eenheid<br>staat achter de naam</div>
+        <div class="ux-kader" data-doel="ux-klant" data-kant="l" style="left:925px;top:95px">
+          <b>Klant</b><br>met al zijn mengsels<br>eronder</div>
+        <div class="ux-kader" data-doel="ux-datum2" data-kant="l" style="left:925px;top:190px">
+          <b>&#10003; + datum:</b><br>bevestigd op die dag.<br>&ndash; = nog niet bevestigd</div>
+        <div class="ux-kader" data-doel="ux-geel" data-kant="l" style="left:925px;top:290px">
+          <b>Gele naam:</b><br>grondstoffen zijn<br>samen geen 100%</div>
+        <div class="ux-kader" data-doel="ux-rood" data-kant="l" style="left:925px;top:390px">
+          <b>Rood vak &#9888;:</b><br>totaal klopt niet,<br>kijk hier naar!</div>
+        <div class="ux-kader" data-doel="ux-streep" data-kant="l" style="left:925px;top:495px">
+          <b>&ndash; = niet</b><br>in dit mengsel</div>
+      </div>
+    </div>
+    <p class="uitleg-voet">Bovenin: <b>&#128101; Klanten</b> en <b>&#9881; Componenten</b> = lijsten beheren &middot; <b>&#10227; Bijwerken</b> = nieuwste versie van de app &middot; <b>&#9974; Volledig scherm</b> &middot; <b>Ctrl + F</b> = zoeken</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="zoekOverlay" style="display:none">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h2>&#128269; Zoeken</h2>
+      <button type="button" class="modal-close" id="zoekClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <input type="text" id="zoekInput" placeholder="Typ een klant, mengselnaam of component…" autocomplete="off">
+        <p class="hint" style="margin-top:6px">Bijv. <i>Vollebregt</i>, <i>AUX</i> of <i>Perliet</i></p>
+      </div>
+      <div id="zoekResultaten"></div>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary" id="zoekNieuwBtn">&#10133; Nieuw mengsel aanmaken</button>
+        <button type="button" class="btn-primary" id="zoekToonBtn" disabled>Toon in overzicht</button>
       </div>
     </div>
   </div>
@@ -824,7 +988,7 @@
 </div>
 
 <div class="modal-overlay" id="compOverlay" style="display:none">
-  <div class="modal" style="max-width:580px">
+  <div class="modal" style="max-width:660px">
     <div class="modal-head">
       <h2>Componenten beheren</h2>
       <button type="button" class="modal-close" id="compClose" aria-label="Sluiten">&#10005;</button>
@@ -832,7 +996,7 @@
     <div class="modal-body">
       <div class="panel">
         <p class="sub">Voeg toe, pas aan of zet in een andere volgorde. Een nieuwe naam wordt ook in de bestaande mengsels aangepast.</p>
-        <div class="comp-head"><span>Naam</span><span>Soort</span><span>Eenheid</span><span></span></div>
+        <div class="comp-head"><span>Naam</span><span>Code</span><span>Soort</span><span>Eenheid</span><span>&#128172; Notitie</span></div>
         <div id="compRows"></div>
         <button type="button" class="btn-add" id="compAddBtn">+ Component toevoegen</button>
       </div>
@@ -955,7 +1119,7 @@
   function downloadCsv() {
     try {
       const headers = ['Klant', 'Mengsel', 'Jaar', 'Aanvraag', 'Bevestigd']
-        .concat(MASTER_COLORS.map(n => n + ' (' + eenheidVan(n) + ')'))
+        .concat(MASTER_COLORS.map(n => { const cc = (COMPONENTS.find(x => x.n === n) || {}).c; return (cc ? '[' + cc + '] ' : '') + n + ' (' + eenheidVan(n) + ')'; }))
         .concat(['Overige componenten']);
       const csvEscape = (val) => {
         const s = val === null || val === undefined ? '' : String(val);
@@ -1311,6 +1475,8 @@
     return Array.from(extra).sort();
   }
 
+  let zoekIds = null;      // Set met id's uit "Toon in overzicht", of null
+  let zoekTerm = '';
   let alleenNieuwste = false;
   alleenNieuwste = true; // bij openen altijd aan
 
@@ -1320,6 +1486,10 @@
       (!selJaar.size || selJaar.has(jaarVan(col))) &&
       (!selSerie.size || selSerie.has(col.ras))
     );
+    if (zoekIds) {
+      const z = lijst.filter(col => zoekIds.has(col.id));
+      lijst.length = 0; z.forEach(c => lijst.push(c));
+    }
     if (!alleenNieuwste) return lijst;
     // Per klant + mengsel alleen de versie met de nieuwste datum houden.
     const beste = new Map();
@@ -1486,7 +1656,8 @@
       const tr = document.createElement('tr');
       const soort = typeVan(kleur);
       const eh = soort && soort !== 'grondstof' ? eenheidVan(kleur) : '';
-      let rowHtml = '<th>' + kleur + (eh ? ' <span class="eenheid">(' + escapeAttr(eh) + ')</span>' : '') + '</th>';
+      const compObj = COMPONENTS.find(x => x.n === kleur);
+      let rowHtml = '<th class="comp-cel" data-comp="' + escapeAttr(kleur) + '" title="Klik voor info">' + kleur + (eh ? ' <span class="eenheid">(' + escapeAttr(eh) + ')</span>' : '') + (compObj && compObj.o ? ' <span class="oms-icoon">&#128172;</span>' : '') + '</th>';
       allCols.forEach(col => {
         const found = col.colors.find(([n]) => n === kleur);
         if (isOpKleurGrower(col.grower)) {
@@ -1549,6 +1720,7 @@
 
   document.getElementById('clearFilterBtn').addEventListener('click', () => {
     selJaar.clear(); selKlant.clear(); selSerie.clear();
+    zoekIds = null; zoekTerm = ''; toonZoekBanner();
     alleenNieuwste = true;
     toonNieuwsteKnop();
     buildMatrix();
@@ -1647,9 +1819,11 @@
     const opties = EENHEDEN.concat(EENHEDEN.includes(c.e) || !c.e ? [] : [c.e])
       .map(e => '<option' + ((isG ? '%' : c.e) === e ? ' selected' : '') + '>' + escapeAttr(e) + '</option>').join('');
     return '<input type="text" class="comp-name" placeholder="Naam" value="' + escapeAttr(c.n) + '">' +
+      '<input type="text" class="comp-code" placeholder="code" title="Eigen code, bijv. voor importeren uit een ander bestand" value="' + escapeAttr(c.c || '') + '">' +
       '<select class="comp-type"><option value="grondstof"' + (isG ? ' selected' : '') + '>Grondstof</option><option value="bemesting"' + (c.t === 'bemesting' ? ' selected' : '') + '>Bemesting</option>' +
       '<option value="instelling"' + (c.t === 'instelling' ? ' selected' : '') + '>Instelling</option></select>' +
       '<select class="comp-unit"' + (isG ? ' disabled' : '') + '>' + opties + '</select>' +
+      '<button type="button" class="comp-oms-btn' + (c.o ? ' heeft' : '') + '" title="Omschrijving / notitie">&#128172;</button>' +
       '<button type="button" class="comp-move" data-dir="-1" title="Omhoog">&#9650;</button>' +
       '<button type="button" class="comp-move" data-dir="1" title="Omlaag">&#9660;</button>' +
       '<button type="button" class="ce-remove" title="Verwijderen">&#10005;</button>';
@@ -1658,7 +1832,15 @@
     const row = document.createElement('div');
     row.className = 'comp-row';
     row.dataset.orig = c.n || '';
-    row.innerHTML = compRowHtml(c);
+    row.innerHTML = compRowHtml(c) +
+      '<div class="comp-oms"><textarea class="comp-oms-tekst" rows="2" placeholder="Omschrijving, bijv. leverancier, korrelgrootte, bijzonderheden…">' + escapeAttr(c.o || '') + '</textarea></div>';
+    const omsBtn = row.querySelector('.comp-oms-btn');
+    const omsTekst = row.querySelector('.comp-oms-tekst');
+    omsBtn.addEventListener('click', () => {
+      row.classList.toggle('oms-open');
+      if (row.classList.contains('oms-open')) omsTekst.focus();
+    });
+    omsTekst.addEventListener('input', () => omsBtn.classList.toggle('heeft', !!omsTekst.value.trim()));
     row.dataset.eenheid = c.e && c.e !== '%' ? c.e : 'Kg';
     const typeSel = row.querySelector('.comp-type');
     const unitSel = row.querySelector('.comp-unit');
@@ -1694,7 +1876,7 @@
   document.getElementById('compCancelBtn').addEventListener('click', closeCompModal);
   compOverlay.addEventListener('click', (e) => { if (e.target === compOverlay) closeCompModal(); });
   document.getElementById('compAddBtn').addEventListener('click', () => {
-    const row = addCompRow({ n: '', e: 'Kg', t: 'bemesting' });
+    const row = addCompRow({ n: '', c: '', e: 'Kg', t: 'bemesting' });
     row.querySelector('.comp-name').focus();
   });
 
@@ -1702,13 +1884,21 @@
     const rows = [...compRowsEl.querySelectorAll('.comp-row')];
     const nieuw = [];
     const namen = new Set();
+    const codes = new Map();
     for (const r of rows) {
       const n = r.querySelector('.comp-name').value.trim();
       if (!n) continue;
       if (namen.has(n.toLowerCase())) { alert('"' + n + '" staat er twee keer in.'); return; }
       namen.add(n.toLowerCase());
+      const code = r.querySelector('.comp-code').value.trim();
+      if (code) {
+        const k = code.toLowerCase();
+        if (codes.has(k)) { alert('Code "' + code + '" wordt twee keer gebruikt: bij "' + codes.get(k) + '" en "' + n + '".'); r.querySelector('.comp-code').focus(); return; }
+        codes.set(k, n);
+      }
       const t = r.querySelector('.comp-type').value;
-      nieuw.push({ n, t, e: t === 'grondstof' ? (r.dataset.eenheid || 'm3') : r.querySelector('.comp-unit').value, orig: r.dataset.orig });
+      const oms = r.querySelector('.comp-oms-tekst').value.trim();
+      nieuw.push({ n, c: code, o: oms, t, e: t === 'grondstof' ? (r.dataset.eenheid || 'm3') : r.querySelector('.comp-unit').value, orig: r.dataset.orig });
     }
     // Hernoemde componenten ook in bestaande mengsels aanpassen
     let hernoemd = 0;
@@ -1717,7 +1907,7 @@
         DATA.forEach(d => (d.colors || []).forEach(x => { if (x[0] === c.orig) { x[0] = c.n; hernoemd++; } }));
       }
     });
-    COMPONENTS = nieuw.map(c => ({ n: c.n, e: c.e, t: c.t }));
+    COMPONENTS = nieuw.map(c => ({ n: c.n, c: c.c || '', o: c.o || '', e: c.e, t: c.t }));
     saveComponents();
     if (hernoemd) syncToFirestore();
     buildFixedColorRows();
@@ -2032,6 +2222,8 @@
   modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
 
   document.getElementById('matrixTable').addEventListener('click', (e) => {
+    const cc = e.target.closest('th.comp-cel');
+    if (cc) { toonCompInfo(cc.dataset.comp, cc); return; }
     const th = e.target.closest('th.clickable');
     if (!th) return;
     openModal(null, null, th.dataset.id);
@@ -2107,6 +2299,7 @@
     if (zelfdeDatum && !confirm('Er is al een versie van "' + grower + ' ' + ras + '" bevestigd op ' + newCol.bevestigd + '.\n\nToch opslaan als extra versie?')) return;
     if (bewerkId) DATA = DATA.filter(d => d.id !== bewerkId);
     DATA.push(newCol);
+    if (zoekIds) zoekIds.add(newCol.id);
     if (!KLANTEN.includes(grower)) bewaarKlanten();
     copyMode = false;
 
@@ -2124,6 +2317,257 @@
     buildMatrix();
     closeModal();
     syncToFirestore();
+  });
+
+  // ---------- Info-kaartje bij een component ----------
+  const compInfoEl = document.getElementById('compInfo');
+  function toonCompInfo(naam, cel) {
+    const c = COMPONENTS.find(x => x.n === naam) || { n: naam };
+    const soort = c.t === 'grondstof' ? 'Grondstof' : c.t === 'bemesting' ? 'Bemesting' : c.t === 'instelling' ? 'Instelling' : 'Overig';
+    const eh = eenheidVan(naam);
+    const aantal = DATA.filter(d => (d.colors || []).some(x => x[0] === naam)).length;
+    compInfoEl.innerHTML =
+      '<button type="button" class="ci-sluit" aria-label="Sluiten">&#10005;</button>' +
+      '<h4>' + escapeAttr(naam) + '</h4>' +
+      '<div class="ci-meta">' + (c.c ? 'Code: <b>' + escapeAttr(c.c) + '</b> · ' : '') + soort + (eh ? ' · ' + escapeAttr(eh) : '') + '</div>' +
+      (c.o ? '<div class="ci-oms">' + escapeAttr(c.o) + '</div>' : '<div class="ci-oms ci-leeg">Nog geen omschrijving.</div>') +
+      '<div class="ci-gebruik">Gebruikt in ' + aantal + ' recept' + (aantal === 1 ? '' : 'en') + '</div>' +
+      (COMPONENTS.some(x => x.n === naam) ? '<button type="button" class="ci-bewerk">&#9998; Omschrijving wijzigen</button>' : '');
+    compInfoEl.style.display = 'block';
+    const r = cel.getBoundingClientRect();
+    const breed = compInfoEl.offsetWidth;
+    let left = r.right + window.scrollX + 8;
+    if (left + breed > window.scrollX + document.documentElement.clientWidth - 8) left = Math.max(8, r.left + window.scrollX);
+    let top = r.top + window.scrollY;
+    if (left === Math.max(8, r.left + window.scrollX)) top = r.bottom + window.scrollY + 6;
+    compInfoEl.style.left = left + 'px';
+    compInfoEl.style.top = top + 'px';
+    compInfoEl.querySelector('.ci-sluit').onclick = sluitCompInfo;
+    const bewerk = compInfoEl.querySelector('.ci-bewerk');
+    if (bewerk) bewerk.onclick = () => {
+      sluitCompInfo();
+      openCompModal();
+      const row = [...compRowsEl.querySelectorAll('.comp-row')].find(x => x.dataset.orig === naam);
+      if (row) { row.classList.add('oms-open'); row.scrollIntoView({ block: 'center' }); row.querySelector('.comp-oms-tekst').focus(); }
+    };
+  }
+  function sluitCompInfo() { compInfoEl.style.display = 'none'; }
+  document.addEventListener('click', (e) => {
+    if (compInfoEl.style.display !== 'none' && !compInfoEl.contains(e.target) && !e.target.closest('th.comp-cel')) sluitCompInfo();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') sluitCompInfo(); });
+  document.querySelector('.matrix-scroll').addEventListener('scroll', sluitCompInfo);
+
+  // ---------- Uitleg-venster ----------
+  const uitlegOverlay = document.getElementById('uitlegOverlay');
+  function tekenUitleg() {
+    const schaalEl = document.getElementById('uitlegSchaal');
+    const canvas = document.getElementById('uitlegCanvas');
+    const ruimte = schaalEl.clientWidth - 8;
+    const f = Math.min(1, ruimte / 1100);
+    canvas.style.transform = 'scale(' + f + ')';
+    canvas.style.marginLeft = f < 1 ? '4px' : 'auto';
+    schaalEl.style.height = Math.ceil(616 * f) + 'px';
+    const svg = document.getElementById('uitlegPijlen');
+    svg.querySelectorAll('line').forEach(l => l.remove());
+    const c = canvas.getBoundingClientRect();
+    const pos = (r) => ({ l: (r.left - c.left) / f, t: (r.top - c.top) / f, w: r.width / f, h: r.height / f });
+    canvas.querySelectorAll('.ux-kader').forEach(k => {
+      const doel = document.getElementById(k.dataset.doel);
+      if (!doel) return;
+      const a = pos(k.getBoundingClientRect()), d = pos(doel.getBoundingClientRect());
+      const kant = k.dataset.kant;
+      let x1, y1;
+      if (kant === 'r') { x1 = a.l + a.w; y1 = a.t + a.h / 2; }
+      else if (kant === 'l') { x1 = a.l; y1 = a.t + a.h / 2; }
+      else if (kant === 'b') { x1 = a.l + a.w / 2; y1 = a.t + a.h; }
+      else { x1 = a.l + a.w / 2; y1 = a.t; }
+      const x2 = d.l + d.w / 2, y2 = d.t + d.h / 2;
+      const lijn = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      lijn.setAttribute('x1', x1); lijn.setAttribute('y1', y1);
+      lijn.setAttribute('x2', x2); lijn.setAttribute('y2', y2);
+      lijn.setAttribute('stroke', '#2F6B4A'); lijn.setAttribute('stroke-width', '2');
+      lijn.setAttribute('marker-end', 'url(#pijlpunt)');
+      svg.appendChild(lijn);
+    });
+  }
+  function openUitleg() {
+    exportMenu.classList.remove('open');
+    uitlegOverlay.style.display = 'flex';
+    requestAnimationFrame(tekenUitleg);
+  }
+  document.getElementById('uitlegBtn').addEventListener('click', openUitleg);
+  document.getElementById('uitlegClose').addEventListener('click', () => { uitlegOverlay.style.display = 'none'; });
+  uitlegOverlay.addEventListener('click', (e) => { if (e.target === uitlegOverlay) uitlegOverlay.style.display = 'none'; });
+  window.addEventListener('resize', () => { if (uitlegOverlay.style.display !== 'none') tekenUitleg(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && uitlegOverlay.style.display !== 'none') uitlegOverlay.style.display = 'none'; });
+
+  // ---------- Zoeken ----------
+  const zoekOverlay = document.getElementById('zoekOverlay');
+  const zoekInput = document.getElementById('zoekInput');
+  const zoekRes = document.getElementById('zoekResultaten');
+  const zoekToonBtn = document.getElementById('zoekToonBtn');
+  let zoekLaatsteIds = [];
+
+  function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function markeer(tekst, q) {
+    const t = String(tekst || '');
+    const i = norm(t).indexOf(norm(q));
+    if (!q || i < 0) return escapeAttr(t);
+    return escapeAttr(t.slice(0, i)) + '<mark>' + escapeAttr(t.slice(i, i + q.length)) + '</mark>' + escapeAttr(t.slice(i + q.length));
+  }
+  function kortDatumVan(col) {
+    const d = col.bevestigd || col.aanvraag || '';
+    return d ? String(d).replace(/^(\d{2})-(\d{2})-\d{2}(\d{2})$/, '$1-$2-$3') : (jaarVan(col) || '');
+  }
+  // Zelfde regel als het overzicht: met "Alleen nieuwste" alleen de laatste versie.
+  function zoekBasis() {
+    if (!alleenNieuwste) return DATA.slice();
+    const beste = new Map();
+    DATA.forEach(col => {
+      const k = (col.grower || '') + '\u0000' + (col.ras || '');
+      const h = beste.get(k);
+      if (!h || sorteerDatum(col).localeCompare(sorteerDatum(h)) > 0) beste.set(k, col);
+    });
+    return [...beste.values()];
+  }
+  function sorteerRecepten(a, b) {
+    const opt = { sensitivity: 'base', numeric: true };
+    return (a.grower || '').localeCompare(b.grower || '', 'nl', opt) ||
+      (a.ras || '').localeCompare(b.ras || '', 'nl', opt) ||
+      sorteerDatum(b).localeCompare(sorteerDatum(a));
+  }
+  function receptKnop(col, extra) {
+    return '<button type="button" class="zoek-item" data-id="' + escapeAttr(col.id) + '"><span>' +
+      escapeAttr(col.grower) + ' – <b>' + escapeAttr(col.ras) + '</b>' + (extra || '') + '</span><small>' +
+      (col.bevestigd ? '&#10003; ' : '') + escapeAttr(kortDatumVan(col)) + '</small></button>';
+  }
+
+  function zoek() {
+    const q = zoekInput.value.trim();
+    zoekLaatsteIds = [];
+    zoekToonBtn.disabled = true;
+    if (q.length < 2) {
+      zoekRes.innerHTML = '<p class="zoek-leeg">Typ minstens 2 letters.</p>';
+      return;
+    }
+    const nq = norm(q);
+    const basis = zoekBasis().sort(sorteerRecepten);
+    const ids = new Set();
+    let html = '';
+
+    // Klanten
+    const klanten = klantenLijst().filter(k => norm(k).includes(nq));
+    if (klanten.length) {
+      html += '<div class="zoek-groep"><h3>Klanten</h3>';
+      klanten.forEach(k => {
+        const rec = basis.filter(c => c.grower === k);
+        rec.forEach(c => ids.add(c.id));
+        html += '<button type="button" class="zoek-item" data-klant="' + escapeAttr(k) + '"><span>&#128101; ' + markeer(k, q) +
+          '</span><small>' + rec.length + ' mengsel' + (rec.length === 1 ? '' : 's') + ' · tonen</small></button>';
+        html += '<div class="zoek-sub"><button type="button" class="zoek-item" data-nieuwklant="' + escapeAttr(k) + '"><span>&#10133; Nieuw mengsel voor ' + escapeAttr(k) + '</span></button></div>';
+      });
+      html += '</div>';
+    }
+
+    // Mengsels
+    const mengsels = basis.filter(c => norm(c.ras).includes(nq));
+    if (mengsels.length) {
+      html += '<div class="zoek-groep"><h3>Mengsels</h3>';
+      mengsels.forEach(c => {
+        ids.add(c.id);
+        html += '<button type="button" class="zoek-item" data-id="' + escapeAttr(c.id) + '"><span>' + escapeAttr(c.grower) + ' – <b>' + markeer(c.ras, q) +
+          '</b></span><small>' + (c.bevestigd ? '&#10003; ' : '') + escapeAttr(kortDatumVan(c)) + '</small></button>';
+      });
+      html += '</div>';
+    }
+
+    // Componenten
+    const compNamen = [...new Set(MASTER_COLORS.concat(DATA.flatMap(d => (d.colors || []).map(x => x[0]))))]
+      .filter(n => norm(n).includes(nq) || norm((COMPONENTS.find(x => x.n === n) || {}).c).includes(nq) || norm((COMPONENTS.find(x => x.n === n) || {}).o).includes(nq));
+    if (compNamen.length) {
+      html += '<div class="zoek-groep"><h3>Componenten</h3>';
+      compNamen.forEach(n => {
+        const soort = typeVan(n);
+        const eh = eenheidVan(n);
+        const met = basis.filter(c => (c.colors || []).some(x => x[0] === n));
+        html += '<p style="margin:6px 0 4px;font-size:13.5px;font-weight:700">&#9881; ' + markeer(n, q) +
+          ' <small style="font-weight:400;color:#555B60">— in ' + met.length + ' mengsel' + (met.length === 1 ? '' : 's') + '</small></p>';
+        if (!met.length) html += '<p class="hint" style="margin:0 0 6px 10px">Komt in geen enkel mengsel voor.</p>';
+        html += '<div class="zoek-sub">';
+        met.forEach(c => {
+          ids.add(c.id);
+          const w = c.colors.find(x => x[0] === n)[1];
+          const waarde = fmtMatrixPct(w) + (soort === 'grondstof' ? '%' : (eh ? ' ' + eh : ''));
+          html += receptKnop(c, ' <span style="color:#163E6E">· ' + escapeAttr(waarde) + '</span>');
+        });
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    zoekLaatsteIds = [...ids];
+    if (!html) {
+      html = '<p class="zoek-leeg">Niets gevonden voor "<b>' + escapeAttr(q) + '</b>".<br>Wil je een nieuw mengsel maken? Klik hieronder op <b>➕ Nieuw mengsel aanmaken</b>.</p>';
+    }
+    zoekToonBtn.disabled = !zoekLaatsteIds.length;
+    zoekToonBtn.textContent = zoekLaatsteIds.length ? 'Toon ' + zoekLaatsteIds.length + ' in overzicht' : 'Toon in overzicht';
+    zoekRes.innerHTML = html;
+  }
+
+  function openZoek() {
+    exportMenu.classList.remove('open');
+    zoekInput.value = zoekTerm || '';
+    zoekOverlay.style.display = 'flex';
+    zoek();
+    setTimeout(() => { zoekInput.focus(); zoekInput.select(); }, 30);
+  }
+  function sluitZoek() { zoekOverlay.style.display = 'none'; }
+  function toonZoekBanner() {
+    const b = document.getElementById('zoekBanner');
+    if (!zoekIds) { b.style.display = 'none'; return; }
+    document.getElementById('zoekBannerTekst').textContent = '🔍 Zoekresultaat voor "' + zoekTerm + '"';
+    b.style.display = '';
+  }
+
+  document.getElementById('zoekBtn').addEventListener('click', openZoek);
+  document.getElementById('zoekClose').addEventListener('click', sluitZoek);
+  zoekOverlay.addEventListener('click', (e) => { if (e.target === zoekOverlay) sluitZoek(); });
+  zoekInput.addEventListener('input', zoek);
+  zoekInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !zoekToonBtn.disabled) zoekToonBtn.click(); if (e.key === 'Escape') sluitZoek(); });
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && document.getElementById('appRoot').style.display !== 'none') {
+      e.preventDefault(); openZoek();
+    }
+  });
+
+  zoekRes.addEventListener('click', (e) => {
+    const knop = e.target.closest('.zoek-item');
+    if (!knop) return;
+    if (knop.dataset.id) { sluitZoek(); openModal(null, null, knop.dataset.id); return; }
+    if (knop.dataset.nieuwklant) { sluitZoek(); openModal(knop.dataset.nieuwklant); setTimeout(() => fRasNew.focus(), 30); return; }
+    if (knop.dataset.klant) {
+      zoekTerm = knop.dataset.klant;
+      zoekIds = new Set(DATA.filter(d => d.grower === knop.dataset.klant).map(d => d.id));
+      sluitZoek(); toonZoekBanner(); buildMatrix();
+    }
+  });
+  zoekToonBtn.addEventListener('click', () => {
+    if (!zoekLaatsteIds.length) return;
+    zoekTerm = zoekInput.value.trim();
+    zoekIds = new Set(zoekLaatsteIds);
+    selJaar.clear(); selKlant.clear(); selSerie.clear();
+    sluitZoek(); toonZoekBanner(); buildMatrix();
+  });
+  document.getElementById('zoekNieuwBtn').addEventListener('click', () => {
+    const q = zoekInput.value.trim();
+    const klant = klantenLijst().find(k => norm(k) === norm(q));
+    sluitZoek();
+    if (klant) { openModal(klant); setTimeout(() => fRasNew.focus(), 30); }
+    else { openModal(); if (q && !MASTER_COLORS.some(n => norm(n).includes(norm(q)))) fRasNew.value = q; }
+  });
+  document.getElementById('zoekBannerWis').addEventListener('click', () => {
+    zoekIds = null; zoekTerm = ''; toonZoekBanner(); buildMatrix();
   });
 
   // ---------- Klanten beheren ----------
@@ -2303,7 +2747,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.17';
+  const APP_VERSIE = '0.23';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
