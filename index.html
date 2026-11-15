@@ -610,6 +610,21 @@
   .cijfer-filter button.actief { background: var(--blauw); color: #FFF; border-color: #164A9C; }
   .zoek-item .beoord-cijfer { min-width: 20px; height: 20px; font-size: 11.5px; margin-right: 6px; vertical-align: middle; }
 
+  .zoek-acties { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .zoek-actie { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; text-align: left; font-family: inherit; font-size: 14.5px; font-weight: 700; color: #1E3D2C; background: var(--mint); border: 2px solid var(--mint-rand); border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+  .zoek-actie:hover { background: var(--mint-hover); }
+  .zoek-actie small { font-weight: 400; font-size: 12px; color: #3A5A47; text-align: right; }
+  .zoek-actie-blauw { background: var(--blauw); color: #FFF; border-color: #164A9C; }
+  .zoek-actie-blauw:hover { background: #1A54AF; }
+  .zoek-actie-blauw small { color: #DCE8FB; }
+  #klantBtn, #compBtn2, #newSerieBtn { display: none !important; }
+  .toolbar-right { margin-left: auto; align-self: center; }
+  .uitleg-rond { width: 34px; height: 34px; border-radius: 50%; background: var(--groen-rand); color: #FFF; border: 2px solid var(--mint-rand);
+    font-family: inherit; font-size: 19px; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px -3px rgba(0,0,0,.4); padding: 0; }
+  .uitleg-rond:hover { background: #4E9A43; }
+  @media (max-width: 640px) { .toolbar-right { width: auto !important; flex-direction: row !important; align-self: flex-end; } }
+
   /* Zoekknop blauw, zoals + Mengsel aanmaken */
   #zoekBtn { background: var(--blauw); color: #FFFFFF; border: 2px solid #164A9C; border-radius: 8px; box-shadow: 0 4px 12px -4px rgba(31,95,196,0.6); }
   #zoekBtn:hover { background: #1A54AF; border-color: #164A9C; }
@@ -894,13 +909,13 @@
             <button type="button" id="csvBtn">CSV export</button>
           </div>
         </div>
-        <button type="button" class="btn-clear-filter" id="uitlegBtn" title="Uitleg van de tabel">Uitleg</button>
         <button type="button" class="btn-clear-filter" id="zoekBtn" title="Zoeken op klant, mengsel of component">Zoeken</button>
       </div>
       <div class="toolbar-right">
         <button type="button" class="btn-clear-filter" id="klantBtn">Klanten</button>
         <button type="button" class="btn-clear-filter" id="compBtn2">Componenten</button>
         <button type="button" class="btn-new-serie" id="newSerieBtn">+ Mengsel aanmaken</button>
+        <button type="button" class="uitleg-rond" id="uitlegBtn" title="Uitleg van de tabel" aria-label="Uitleg">?</button>
       </div>
     </div>
   </div>
@@ -916,7 +931,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.34 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.35 — 15 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1045,8 +1060,7 @@
           <div class="ux-bar">
             <span class="ux-knop" id="ux-jaar">Jaar &#9662;</span>
             <span class="ux-knop ux-blauw" id="ux-nieuwste">Nieuwste: Ja</span>
-            <span class="ux-knop" id="ux-zoek">Zoeken</span>
-            <span class="ux-knop ux-blauw" id="ux-nieuw">+ Mengsel aanmaken</span>
+            <span class="ux-knop ux-blauw" id="ux-zoek">Zoeken</span>
           </div>
           <table class="ux-tabel">
             <tr class="ux-klant"><th class="ux-hoek" rowspan="3"></th><th colspan="2">Vollebregt</th><th id="ux-klant">Bolk</th></tr>
@@ -1064,10 +1078,8 @@
 
         <div class="ux-kader" data-doel="ux-jaar" data-kant="r" style="left:20px;top:40px">
           <b>Kies wat je ziet:</b><br>jaren, klant, mengsel.<br><i>Nieuwste: Ja</i> = per mengsel<br>alleen de laatste versie</div>
-        <div class="ux-kader" data-doel="ux-zoek" data-kant="b" style="left:430px;top:22px">
-          <b>Zoeken:</b><br>op klant, mengsel<br>of component</div>
-        <div class="ux-kader" data-doel="ux-nieuw" data-kant="b" style="left:640px;top:22px">
-          <b>Nieuw mengsel:</b><br>kies klant, typ naam,<br>vul hoeveelheden in</div>
+        <div class="ux-kader" data-doel="ux-zoek" data-kant="b" style="left:480px;top:14px">
+          <b>Zoeken:</b> op klant, mengsel, teelt, component<br>of rapportcijfer. Hier ook: <b>nieuw mengsel</b>,<br><b>klanten</b> en <b>componenten</b> beheren</div>
         <div class="ux-kader" data-doel="ux-naam" data-kant="r" style="left:20px;top:205px">
           <b>Klik op een mengselnaam:</b><br>recept bekijken, wijzigen<br>of een nieuwe versie (kopie)</div>
         <div class="ux-kader" data-doel="ux-procent" data-kant="r" style="left:20px;top:320px">
@@ -1088,7 +1100,7 @@
           <b>&ndash; = niet</b><br>in dit mengsel</div>
       </div>
     </div>
-    <p class="uitleg-voet">Bovenin: <b>Klanten</b> en <b>Componenten</b> = lijsten beheren &middot; <b>Bijwerken</b> = nieuwste versie van de app &middot; <b>Volledig scherm</b> &middot; <b>Ctrl + F</b> = zoeken</p>
+    <p class="uitleg-voet">Via <b>Zoeken</b>: nieuw mengsel, klanten en componenten &middot; <b>Bijwerken</b> = nieuwste versie van de app &middot; <b>Volledig scherm</b> &middot; <b>Ctrl + F</b> = zoeken</p>
   </div>
 </div>
 
@@ -1103,7 +1115,7 @@
         <input type="text" id="zoekInput" placeholder="Typ een klant, mengsel, teelt of component…" autocomplete="off">
         <p class="hint" style="margin-top:6px">Bijv. <i>Vollebregt</i>, <i>AUX</i>, <i>cyclaam</i> of <i>Perliet</i></p>
         <div class="cijfer-filter" id="cijferFilter">
-          <span>Cijfer:</span>
+          <span>Rapportcijfer:</span>
           <button type="button" data-f="alle" class="actief">Alle</button>
           <button type="button" data-f="goed">Goed (4-5)</button>
           <button type="button" data-f="matig">Matig (3)</button>
@@ -1111,11 +1123,15 @@
           <button type="button" data-f="geen">Geen cijfer</button>
         </div>
       </div>
+      <div class="zoek-acties">
+        <button type="button" class="zoek-actie zoek-actie-blauw" id="zoekNieuwBtn"><span>+ Nieuw mengsel aanmaken</span><small>klant kiezen, naam typen, invullen</small></button>
+        <button type="button" class="zoek-actie" id="zoekKlantenBtn"><span>Klanten beheren</span><small>toevoegen, naam wijzigen</small></button>
+        <button type="button" class="zoek-actie" id="zoekCompBtn"><span>Componenten beheren</span><small>code, soort, eenheid, notitie</small></button>
+      </div>
       <div id="zoekResultaten"></div>
     </div>
     <div class="modal-actions">
       <div class="modal-actions-row">
-        <button type="button" class="btn-secondary" id="zoekNieuwBtn">Nieuw mengsel aanmaken</button>
         <button type="button" class="btn-primary" id="zoekToonBtn" disabled>Toon in overzicht</button>
       </div>
     </div>
@@ -2782,7 +2798,7 @@
     if (cijferFilter !== 'alle') basis.sort((a, b) => (laatsteCijfer(b) || 0) - (laatsteCijfer(a) || 0) || sorteerRecepten(a, b));
     if (q.length < 2) {
       if (cijferFilter === 'alle') {
-        zoekRes.innerHTML = '<p class="zoek-leeg">Typ minstens 2 letters, of kies een cijfer.</p>';
+        zoekRes.innerHTML = '';
         return;
       }
       const naam = document.querySelector('#cijferFilter button.actief').textContent;
@@ -2863,7 +2879,7 @@
 
     zoekLaatsteIds = [...ids];
     if (!html) {
-      html = '<p class="zoek-leeg">Niets gevonden voor "<b>' + escapeAttr(q) + '</b>".<br>Wil je een nieuw mengsel maken? Klik hieronder op <b>Nieuw mengsel aanmaken</b>.</p>';
+      html = '<p class="zoek-leeg">Niets gevonden voor "<b>' + escapeAttr(q) + '</b>".<br>Wil je een nieuw mengsel maken? Klik hierboven op <b>+ Nieuw mengsel aanmaken</b>.</p>';
     }
     zoekToonBtn.disabled = !zoekLaatsteIds.length;
     zoekToonBtn.textContent = zoekLaatsteIds.length ? 'Toon ' + zoekLaatsteIds.length + ' in overzicht' : 'Toon in overzicht';
@@ -2947,6 +2963,8 @@
     selJaar.clear(); selKlant.clear(); selSerie.clear();
     sluitZoek(); toonZoekBanner(); buildMatrix();
   });
+  document.getElementById('zoekKlantenBtn').addEventListener('click', () => { sluitZoek(); openKlantModal(false); });
+  document.getElementById('zoekCompBtn').addEventListener('click', () => { sluitZoek(); openCompModal(); });
   document.getElementById('zoekNieuwBtn').addEventListener('click', () => {
     const q = zoekInput.value.trim();
     const klant = klantenLijst().find(k => norm(k) === norm(q));
@@ -3136,7 +3154,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.34';
+  const APP_VERSIE = '0.35';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
