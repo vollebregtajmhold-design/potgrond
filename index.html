@@ -605,6 +605,15 @@
   .kaart-acties button { flex: 1 1 auto; }
   .kaart-acties .btn-secondary { background: #FFF; border: 2px solid #000; }
 
+  .cijfer-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: #3A3F44; }
+  .cijfer-filter button { font-family: inherit; font-size: 12.5px; font-weight: 700; background: #FFF; color: #111; border: 1px solid #000; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+  .cijfer-filter button.actief { background: var(--blauw); color: #FFF; border-color: #164A9C; }
+  .zoek-item .beoord-cijfer { min-width: 20px; height: 20px; font-size: 11.5px; margin-right: 6px; vertical-align: middle; }
+
+  /* Zoekknop blauw, zoals + Mengsel aanmaken */
+  #zoekBtn { background: var(--blauw); color: #FFFFFF; border: 2px solid #164A9C; border-radius: 8px; box-shadow: 0 4px 12px -4px rgba(31,95,196,0.6); }
+  #zoekBtn:hover { background: #1A54AF; border-color: #164A9C; }
+
   /* Zoeken */
   .zoek-groep { background: #F3EFE8; border: 1px solid #D9D3C8; border-radius: 12px; padding: 8px 12px; margin-bottom: 8px; }
   .zoek-groep h3 { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #163E6E; margin: 2px 0 6px; }
@@ -907,7 +916,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.32 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.34 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1093,6 +1102,14 @@
       <div class="panel">
         <input type="text" id="zoekInput" placeholder="Typ een klant, mengsel, teelt of component…" autocomplete="off">
         <p class="hint" style="margin-top:6px">Bijv. <i>Vollebregt</i>, <i>AUX</i>, <i>cyclaam</i> of <i>Perliet</i></p>
+        <div class="cijfer-filter" id="cijferFilter">
+          <span>Cijfer:</span>
+          <button type="button" data-f="alle" class="actief">Alle</button>
+          <button type="button" data-f="goed">Goed (4-5)</button>
+          <button type="button" data-f="matig">Matig (3)</button>
+          <button type="button" data-f="slecht">Slecht (1-2)</button>
+          <button type="button" data-f="geen">Geen cijfer</button>
+        </div>
       </div>
       <div id="zoekResultaten"></div>
     </div>
@@ -2761,12 +2778,24 @@
     const q = zoekInput.value.trim();
     zoekLaatsteIds = [];
     zoekToonBtn.disabled = true;
+    const basis = zoekBasis().filter(pastBijCijfer).sort(sorteerRecepten);
+    if (cijferFilter !== 'alle') basis.sort((a, b) => (laatsteCijfer(b) || 0) - (laatsteCijfer(a) || 0) || sorteerRecepten(a, b));
     if (q.length < 2) {
-      zoekRes.innerHTML = '<p class="zoek-leeg">Typ minstens 2 letters.</p>';
+      if (cijferFilter === 'alle') {
+        zoekRes.innerHTML = '<p class="zoek-leeg">Typ minstens 2 letters, of kies een cijfer.</p>';
+        return;
+      }
+      const naam = document.querySelector('#cijferFilter button.actief').textContent;
+      zoekLaatsteIds = basis.map(c => c.id);
+      zoekRes.innerHTML = basis.length
+        ? '<div class="zoek-groep"><h3>Mengsels — ' + escapeAttr(naam) + '</h3>' + basis.map(c => receptKnop(c, c.teelt ? '<br><small style="color:#2F6B4A">' + escapeAttr(c.teelt) + '</small>' : '')).join('') + '</div>'
+        : '<p class="zoek-leeg">Geen mengsels met dit cijfer.</p>';
+      zoekToonBtn.disabled = !zoekLaatsteIds.length;
+      zoekToonBtn.textContent = zoekLaatsteIds.length ? 'Toon ' + zoekLaatsteIds.length + ' in overzicht' : 'Toon in overzicht';
+      zetCijferBolletjes();
       return;
     }
     const nq = norm(q);
-    const basis = zoekBasis().sort(sorteerRecepten);
     const ids = new Set();
     let html = '';
 
@@ -2839,7 +2868,39 @@
     zoekToonBtn.disabled = !zoekLaatsteIds.length;
     zoekToonBtn.textContent = zoekLaatsteIds.length ? 'Toon ' + zoekLaatsteIds.length + ' in overzicht' : 'Toon in overzicht';
     zoekRes.innerHTML = html;
+    zetCijferBolletjes();
   }
+
+  // ---- Zoeken op rapportcijfer ----
+  let cijferFilter = 'alle';
+  function laatsteCijfer(col) {
+    const l = Array.isArray(col.beoordelingen) ? col.beoordelingen : [];
+    if (!l.length) return null;
+    return Number(l.slice().sort((a, b) => datumNaarSort(b.d).localeCompare(datumNaarSort(a.d)))[0].c) || null;
+  }
+  function pastBijCijfer(col) {
+    const c = laatsteCijfer(col);
+    if (cijferFilter === 'goed') return c >= 4;
+    if (cijferFilter === 'matig') return c === 3;
+    if (cijferFilter === 'slecht') return c !== null && c <= 2;
+    if (cijferFilter === 'geen') return c === null;
+    return true;
+  }
+  function zetCijferBolletjes() {
+    zoekRes.querySelectorAll('.zoek-item[data-id]').forEach(k => {
+      const col = DATA.find(d => d.id === k.dataset.id);
+      const c = col && laatsteCijfer(col);
+      const sm = k.querySelector(':scope > small');
+      if (c && sm) sm.insertAdjacentHTML('afterbegin', '<span class="beoord-cijfer c' + c + '" title="Laatste rapportcijfer">' + c + '</span>');
+    });
+  }
+  document.getElementById('cijferFilter').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    cijferFilter = b.dataset.f;
+    document.querySelectorAll('#cijferFilter button').forEach(x => x.classList.toggle('actief', x === b));
+    zoek();
+  });
 
   function openZoek() {
     exportMenu.classList.remove('open');
@@ -2880,7 +2941,8 @@
   });
   zoekToonBtn.addEventListener('click', () => {
     if (!zoekLaatsteIds.length) return;
-    zoekTerm = zoekInput.value.trim();
+    const filterNaam = cijferFilter !== 'alle' ? document.querySelector('#cijferFilter button.actief').textContent : '';
+    zoekTerm = [zoekInput.value.trim(), filterNaam ? 'cijfer ' + filterNaam : ''].filter(Boolean).join(' + ');
     zoekIds = new Set(zoekLaatsteIds);
     selJaar.clear(); selKlant.clear(); selSerie.clear();
     sluitZoek(); toonZoekBanner(); buildMatrix();
@@ -3074,7 +3136,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.32';
+  const APP_VERSIE = '0.34';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
