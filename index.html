@@ -623,6 +623,14 @@
     font-family: inherit; font-size: 19px; font-weight: 800; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
     box-shadow: 0 3px 8px -3px rgba(0,0,0,.4); padding: 0; }
   .uitleg-rond:hover { background: #4E9A43; }
+  .modal-head-knoppen { display: flex; align-items: center; gap: 8px; }
+  .uitleg-rond-klein { width: 28px; height: 28px; font-size: 16px; border-width: 2px; border-color: #FFF; box-shadow: none; }
+  .hulp-body { display: flex; flex-direction: column; gap: 8px; }
+  .hulp-kaart { background: #EAF5EE; border: 1.5px solid #2F6B4A; border-radius: 10px; padding: 8px 12px; font-size: 13.5px; color: #1E3D2C; }
+  .hulp-kaart > b { font-size: 14.5px; color: #12301F; }
+  .hulp-kaart ul { margin: 4px 0 0; padding-left: 18px; }
+  .hulp-kaart li { margin: 2px 0; line-height: 1.4; }
+  @media (pointer: coarse), (max-width: 640px) { .hulp-kaart { font-size: 15.5px; } .hulp-kaart > b { font-size: 16.5px; } }
   @media (max-width: 640px) { .toolbar-right { width: auto !important; flex-direction: row !important; align-self: flex-end; } }
 
   /* Zoekknop blauw, zoals + Mengsel aanmaken */
@@ -776,6 +784,48 @@
 <div class="save-toast" id="saveToast"></div>
 
 <div class="comp-info" id="compInfo" style="display:none"></div>
+<div class="modal-overlay" id="hulpOverlay" style="display:none; z-index:145">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <h2>Wat kan ik in dit scherm?</h2>
+      <button type="button" class="modal-close" id="hulpClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="modal-body hulp-body">
+      <div class="hulp-kaart"><b>Klant en mengsel</b>
+        <ul><li>Bij een nieuw mengsel: kies de <b>klant</b> en typ de <b>naam</b>.</li>
+        <li>Bij bewerken: kies een ander mengsel van dezelfde klant om dat recept te openen.</li>
+        <li><b>Mengselnaam wijzigen</b>: past de naam aan in alle versies.</li>
+        <li>Een klantnaam wijzig je via <b>Zoeken → Klanten beheren</b>.</li></ul></div>
+      <div class="hulp-kaart"><b>Datums</b>
+        <ul><li><b>Aanvraag</b>: wanneer de klant het vroeg.</li>
+        <li><b>Bevestigd</b>: wanneer het recept is goedgekeurd. Je naam wordt erbij bewaard, en in het overzicht komt een ✓ met de datum.</li>
+        <li>Het <b>jaar</b> volgt vanzelf uit de datum, als je het leeg laat.</li></ul></div>
+      <div class="hulp-kaart"><b>Teelt en notitie</b>
+        <ul><li><b>Teelt</b>: waarvoor dit mengsel is, bijv. <i>cyclaam 10,5 cm</i>. Je kunt hierop zoeken, en het staat op de receptkaart.</li>
+        <li><b>Notitie</b>: andere bijzonderheden.</li></ul></div>
+      <div class="hulp-kaart"><b>Beoordeling</b>
+        <ul><li><b>Rapportcijfer geven</b>: datum en cijfer 1 tot 5, met een opmerking als je wilt.</li>
+        <li>Je kunt meerdere cijfers geven. Dan zie je ook het gemiddelde.</li>
+        <li>Met het ✕ achter een cijfer haal je het weg.</li></ul></div>
+      <div class="hulp-kaart"><b>Componenten</b>
+        <ul><li><b>Grondstoffen</b> in %. Samen moet het <b>100%</b> zijn. Bovenin zie je het totaal.</li>
+        <li><b>Bemesting</b> en <b>instellingen</b> als waarde. De eenheid staat achter de naam.</li>
+        <li><b>Opm.</b>: korte opmerking bij een component, bijv. <i>pas op stof</i>.</li>
+        <li>Ingevulde vakjes worden <b>blauw</b>. Zo zie je snel wat erin zit.</li>
+        <li>Mist er een component? Voeg het toe via <b>Zoeken → Componenten beheren</b>.</li></ul></div>
+      <div class="hulp-kaart"><b>Knoppen onderin</b>
+        <ul><li><b>Nieuwe versie (kopie)</b>: kopie van dit recept om aan te passen. De oude versie blijft bewaard.</li>
+        <li><b>Receptkaart</b>: één mengsel compact op één scherm, om te delen of te printen.</li>
+        <li><b>Verwijderen</b>: alleen deze versie.</li>
+        <li><b>Opslaan</b>: vergeet deze niet. Ook een nieuw rapportcijfer wordt pas dan bewaard.</li></ul></div>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-row">
+        <button type="button" class="btn-primary" id="hulpOk">Duidelijk</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="beoordOverlay" style="display:none; z-index:140">
   <div class="modal" style="max-width:380px">
     <div class="modal-head">
@@ -931,14 +981,17 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.35 — 15 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.37 — 15 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
   <div class="modal" id="editModal">
     <div class="modal-head">
       <h2 id="modalTitle">Mengsel aanmaken</h2>
-      <button type="button" class="modal-close" id="modalClose" aria-label="Sluiten">&#10005;</button>
+      <div class="modal-head-knoppen">
+        <button type="button" class="uitleg-rond uitleg-rond-klein" id="mengselHulpBtn" title="Wat kan ik hier?" aria-label="Uitleg">?</button>
+        <button type="button" class="modal-close" id="modalClose" aria-label="Sluiten">&#10005;</button>
+      </div>
     </div>
     <div class="modal-body">
       <div class="uitleg" id="aanmaakUitleg">
@@ -1068,7 +1121,7 @@
             <tr class="ux-datum"><th id="ux-datum"><span class="ux-vink">&#10003;</span>08-06-26</th><th id="ux-onbevestigd">&ndash;</th><th id="ux-datum2"><span class="ux-vink">&#10003;</span>01-02-26</th></tr>
             <tr class="ux-sectie"><td id="ux-sectie">GRONDSTOFFEN (%)</td><td colspan="3"></td></tr>
             <tr><td>Veen Fractie 1</td><td id="ux-procent">90%</td><td>80%</td><td class="ux-leeg">&ndash;</td></tr>
-            <tr><td>Perliet grof</td><td>10%</td><td class="ux-leeg">&ndash;</td><td>20%</td></tr>
+            <tr><td id="ux-comp">Perliet grof <span class="oms-icoon">&#128172;</span></td><td>10%</td><td class="ux-leeg">&ndash;</td><td>20%</td></tr>
             <tr><td>Veen Fractie 0</td><td class="ux-leeg">&ndash;</td><td class="ux-leeg">&ndash;</td><td>80%</td></tr>
             <tr class="ux-totaal"><td>Totaal grondstoffen</td><td>100%</td><td class="ux-rood" id="ux-rood">80% &#9888;</td><td>100%</td></tr>
             <tr class="ux-sectie"><td id="ux-sectie2">BEMESTING</td><td colspan="3"></td></tr>
@@ -1080,12 +1133,14 @@
           <b>Kies wat je ziet:</b><br>jaren, klant, mengsel.<br><i>Nieuwste: Ja</i> = per mengsel<br>alleen de laatste versie</div>
         <div class="ux-kader" data-doel="ux-zoek" data-kant="b" style="left:480px;top:14px">
           <b>Zoeken:</b> op klant, mengsel, teelt, component<br>of rapportcijfer. Hier ook: <b>nieuw mengsel</b>,<br><b>klanten</b> en <b>componenten</b> beheren</div>
-        <div class="ux-kader" data-doel="ux-naam" data-kant="r" style="left:20px;top:205px">
-          <b>Klik op een mengselnaam:</b><br>recept bekijken, wijzigen<br>of een nieuwe versie (kopie)</div>
-        <div class="ux-kader" data-doel="ux-procent" data-kant="r" style="left:20px;top:320px">
-          <b>Grondstoffen:</b><br>in procenten,<br>samen altijd 100%</div>
-        <div class="ux-kader" data-doel="ux-sectie2" data-kant="r" style="left:20px;top:425px">
+        <div class="ux-kader" data-doel="ux-naam" data-kant="r" style="left:20px;top:200px">
+          <b>Klik op een mengselnaam:</b><br>recept bekijken, wijzigen,<br>nieuwe versie of receptkaart</div>
+        <div class="ux-kader" data-doel="ux-sectie" data-kant="r" style="left:20px;top:290px">
           <b>Blauwe balk:</b><br>Grondstoffen (in %),<br>Bemesting, Instellingen</div>
+        <div class="ux-kader" data-doel="ux-comp" data-kant="r" style="left:20px;top:380px">
+          <b>Klik op een component:</b><br>code en omschrijving.<br>Wolkje = er is een notitie</div>
+        <div class="ux-kader" data-doel="ux-procent" data-kant="r" style="left:20px;top:490px">
+          <b>Grondstoffen:</b><br>in procenten,<br>samen altijd 100%</div>
         <div class="ux-kader" data-doel="ux-kg" data-kant="t" style="left:420px;top:520px">
           <b>Bemesting:</b><br>als waarde, eenheid<br>staat achter de naam</div>
         <div class="ux-kader" data-doel="ux-klant" data-kant="l" style="left:925px;top:95px">
@@ -2504,6 +2559,12 @@
     syncToFirestore();
   });
 
+  // ---------- Hulp in het mengselscherm ----------
+  const hulpOverlay = document.getElementById('hulpOverlay');
+  document.getElementById('mengselHulpBtn').addEventListener('click', () => { hulpOverlay.style.display = 'flex'; hulpOverlay.scrollTop = 0; });
+  ['hulpClose', 'hulpOk'].forEach(id => document.getElementById(id).addEventListener('click', () => { hulpOverlay.style.display = 'none'; }));
+  hulpOverlay.addEventListener('click', (e) => { if (e.target === hulpOverlay) hulpOverlay.style.display = 'none'; });
+
   // ---------- Rapportcijfer ----------
   let editBeoordelingen = [];
   let gekozenCijfer = 0;
@@ -3154,7 +3215,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.35';
+  const APP_VERSIE = '0.37';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
