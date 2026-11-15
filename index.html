@@ -542,6 +542,28 @@
     .comp-info .ci-sluit { font-size: 22px !important; top: 8px; right: 8px; }
   }
 
+  /* Beoordeling */
+  .beoord-blok { background: #FFF; border: 1px solid #000; border-radius: 11px; padding: 6px 8px; }
+  .beoord-lijst:empty::before { content: 'Nog geen rapportcijfer.'; color: #888; font-size: 13px; font-style: italic; display: block; padding: 2px 2px 4px; }
+  .beoord-rij { display: flex; align-items: center; gap: 8px; padding: 4px 2px; border-bottom: 1px solid #EEE; font-size: 13.5px; }
+  .beoord-rij:last-child { border-bottom: none; }
+  .beoord-cijfer { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; border-radius: 50%; font-weight: 800; color: #FFF; }
+  .beoord-tekst { flex: 1; color: #333; }
+  .beoord-tekst small { color: #777; }
+  .beoord-weg { border: none; background: none; color: #999; cursor: pointer; font-size: 14px; }
+  .beoord-gem { font-size: 12.5px; color: #163E6E; font-weight: 700; padding: 2px 2px 6px; }
+  .c1 { background: #C62828; } .c2 { background: #EF6C00; } .c3 { background: #F9A825; color: #3A2A00 !important; } .c4 { background: #7CB342; } .c5 { background: #2E7D32; }
+  .cijfer-knoppen { display: flex; gap: 8px; }
+  .cijfer-knoppen button { flex: 1; height: 46px; font-family: inherit; font-size: 20px; font-weight: 800; border-radius: 10px; border: 2px solid #000; background: #FFF; cursor: pointer; }
+  .cijfer-knoppen button.gekozen { color: #FFF; border-color: #000; transform: scale(1.06); }
+  .cijfer-knoppen button.gekozen[data-c="1"] { background: #C62828; } .cijfer-knoppen button.gekozen[data-c="2"] { background: #EF6C00; }
+  .cijfer-knoppen button.gekozen[data-c="3"] { background: #F9A825; color: #3A2A00; } .cijfer-knoppen button.gekozen[data-c="4"] { background: #7CB342; }
+  .cijfer-knoppen button.gekozen[data-c="5"] { background: #2E7D32; }
+  .kaart-teelt { background: #EAF5EE; color: #12301F; border-bottom: 1px solid #CFE6D7; padding: 7px 14px; font-size: 15px; }
+  .kaart-teelt b { font-size: 11.5px; text-transform: uppercase; color: #2F6B4A; margin-right: 6px; }
+  .kaart-beoord { display: inline-flex; align-items: center; gap: 4px; }
+  .kaart-beoord .beoord-cijfer { min-width: 20px; height: 20px; font-size: 12px; }
+
   /* Receptkaart */
   .kaart-overlay { position: fixed; inset: 0; z-index: 130; background: rgba(20,20,30,.6); overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; padding: 14px 10px 30px; }
   .kaart-wrap { width: 100%; max-width: 480px; }
@@ -730,13 +752,45 @@
 <div class="save-toast" id="saveToast"></div>
 
 <div class="comp-info" id="compInfo" style="display:none"></div>
+<div class="modal-overlay" id="beoordOverlay" style="display:none; z-index:140">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head">
+      <h2>Rapportcijfer</h2>
+      <button type="button" class="modal-close" id="beoordClose" aria-label="Sluiten">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="panel">
+        <div class="field">
+          <label for="beoordDatum">Datum</label>
+          <input type="date" id="beoordDatum">
+        </div>
+        <div class="field">
+          <label>Cijfer (1 = slecht, 5 = heel goed)</label>
+          <div class="cijfer-knoppen" id="cijferKnoppen">
+            <button type="button" data-c="1">1</button><button type="button" data-c="2">2</button><button type="button" data-c="3">3</button><button type="button" data-c="4">4</button><button type="button" data-c="5">5</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="beoordOpm">Opmerking (mag leeg)</label>
+          <input type="text" id="beoordOpm" placeholder="Bijv. goede beworteling">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary" id="beoordAnnuleer">Annuleren</button>
+        <button type="button" class="btn-primary" id="beoordOk">Toevoegen</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="kaart-overlay" id="kaartOverlay" style="display:none">
   <div class="kaart-wrap">
     <div class="kaart" id="kaart"></div>
     <div class="kaart-acties">
-      <button type="button" class="btn-primary" id="kaartDeel">&#128228; Delen als afbeelding</button>
-      <button type="button" class="btn-secondary" id="kaartPrint">&#128424; Printen</button>
-      <button type="button" class="btn-secondary" id="kaartSluit">&#10005; Sluiten</button>
+      <button type="button" class="btn-primary" id="kaartDeel">Delen als afbeelding</button>
+      <button type="button" class="btn-secondary" id="kaartPrint">Printen</button>
+      <button type="button" class="btn-secondary" id="kaartSluit">Sluiten</button>
     </div>
   </div>
 </div>
@@ -755,7 +809,7 @@
     </div>
     <div id="lokaalBackupWrap" style="display:none; margin-top:16px; padding-top:14px; border-top:1px solid var(--border)">
       <p style="margin-bottom:10px" id="lokaalBackupTekst"></p>
-      <button type="button" class="btn-google" id="lokaalBackupBtn">&#8681; Backup van deze gegevens downloaden</button>
+      <button type="button" class="btn-google" id="lokaalBackupBtn">Backup van deze gegevens downloaden</button>
     </div>
     <div id="authDenied" style="display:none">
       <h1>Geen toegang</h1>
@@ -767,7 +821,7 @@
 </div>
 
 <div class="wrap" id="appRoot" style="display:none">
-  <button type="button" id="mobileChromeToggle" title="Menu tonen/verbergen">&#9776; Menu</button>
+  <button type="button" id="mobileChromeToggle" title="Menu tonen/verbergen">Menu</button>
   <div id="topChrome">
     <header>
       <h1>Potgrond Recepten</h1>
@@ -776,9 +830,9 @@
         <div class="user-bar">
           <span class="sync-dot offline" id="syncDot" title="Verbinden…"></span>
           <span class="user-email" id="userEmail"></span>
-          <button type="button" class="btn-logout" id="fullscreenBtn" style="display:none" title="Volledig scherm aan/uit">&#9974; Volledig scherm</button>
-          <button type="button" class="btn-logout" id="updateBtn" title="Nieuwste versie van GitHub laden">&#10227; Bijwerken</button>
-          <button type="button" class="btn-logout" id="installBtn" style="display:none" title="Als app op je bureaublad zetten">&#11015; Installeren</button>
+          <button type="button" class="btn-logout" id="fullscreenBtn" style="display:none" title="Volledig scherm aan/uit">Volledig scherm</button>
+          <button type="button" class="btn-logout" id="updateBtn" title="Nieuwste versie van GitHub laden">Bijwerken</button>
+          <button type="button" class="btn-logout" id="installBtn" style="display:none" title="Als app op je bureaublad zetten">Installeren</button>
           <button type="button" class="btn-logout" id="logoutBtn">Uitloggen</button>
         </div>
       </div>
@@ -820,23 +874,23 @@
             <div class="multi-select-dropdown" id="serieSelectDropdown"></div>
           </div>
         </div>
-        <button type="button" class="btn-clear-filter" id="clearFilterBtn" title="Filter wissen">&#10005; Wissen</button>
+        <button type="button" class="btn-clear-filter" id="clearFilterBtn" title="Filter wissen">Wissen</button>
         <div class="export-menu" id="exportMenu">
-          <button type="button" class="btn-clear-filter" id="exportMenuBtn" title="Exportopties">&#8681; Exporteren <span class="caret">&#9662;</span></button>
+          <button type="button" class="btn-clear-filter" id="exportMenuBtn" title="Exportopties">Exporteren <span class="caret">&#9662;</span></button>
           <div class="export-menu-dropdown" id="exportMenuDropdown">
-            <button type="button" id="compBtn">&#9881; Componenten beheren</button>
-            <button type="button" id="printBtn">&#128424; Print</button>
-            <button type="button" id="exportBtn">&#8681; Backup (JSON)</button>
-            <button type="button" id="importBtn">&#8679; Backup terugzetten</button>
-            <button type="button" id="csvBtn">&#8681; CSV export</button>
+            <button type="button" id="compBtn">Componenten beheren</button>
+            <button type="button" id="printBtn">Print</button>
+            <button type="button" id="exportBtn">Backup (JSON)</button>
+            <button type="button" id="importBtn">Backup terugzetten</button>
+            <button type="button" id="csvBtn">CSV export</button>
           </div>
         </div>
-        <button type="button" class="btn-clear-filter" id="uitlegBtn" title="Uitleg van de tabel">&#10067; Uitleg</button>
-        <button type="button" class="btn-clear-filter" id="zoekBtn" title="Zoeken op klant, mengsel of component">&#128269; Zoeken</button>
+        <button type="button" class="btn-clear-filter" id="uitlegBtn" title="Uitleg van de tabel">Uitleg</button>
+        <button type="button" class="btn-clear-filter" id="zoekBtn" title="Zoeken op klant, mengsel of component">Zoeken</button>
       </div>
       <div class="toolbar-right">
-        <button type="button" class="btn-clear-filter" id="klantBtn">&#128101; Klanten</button>
-        <button type="button" class="btn-clear-filter" id="compBtn2">&#9881; Componenten</button>
+        <button type="button" class="btn-clear-filter" id="klantBtn">Klanten</button>
+        <button type="button" class="btn-clear-filter" id="compBtn2">Componenten</button>
         <button type="button" class="btn-new-serie" id="newSerieBtn">+ Mengsel aanmaken</button>
       </div>
     </div>
@@ -844,7 +898,7 @@
 
   <div class="zoek-banner" id="zoekBanner" style="display:none">
     <span id="zoekBannerTekst"></span>
-    <button type="button" class="btn-clear-filter" id="zoekBannerWis">&#10005; Zoekfilter wissen</button>
+    <button type="button" class="btn-clear-filter" id="zoekBannerWis">Zoekfilter wissen</button>
   </div>
 
   <div class="matrix-shell">
@@ -853,7 +907,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.31 — 14 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.32 — 14 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -884,9 +938,9 @@
             <select id="fRasSelect"></select>
           </div>
         </div>
-        <p class="hint" id="klantHint">Klant staat er niet bij? <button type="button" class="link-btn" id="klantBeheerLink">&#128101; Klant toevoegen</button></p>
+        <p class="hint" id="klantHint">Klant staat er niet bij? <button type="button" class="link-btn" id="klantBeheerLink">Klant toevoegen</button></p>
         <div class="field-row" id="renameRow" style="display:none">
-          <button type="button" class="btn-add" id="renameMengselBtn">&#9998; Mengselnaam wijzigen</button>
+          <button type="button" class="btn-add" id="renameMengselBtn">Mengselnaam wijzigen</button>
         </div>
         <div class="field" id="fKlantNewWrap" style="display:none">
           <label for="fKlantNew">Naam nieuwe klant</label>
@@ -915,10 +969,21 @@
           </div>
         </div>
         <div class="field">
+          <label for="fTeelt">Teelt</label>
+          <textarea id="fTeelt" rows="2" placeholder="Voor welke teelt is dit mengsel? Bijv. cyclaam 10,5 cm pot"></textarea>
+        </div>
+        <div class="field">
           <label for="fNotitie">Notitie</label>
           <textarea id="fNotitie" rows="2" placeholder="Bijv. bijzonderheden over dit mengsel"></textarea>
         </div>
         <div class="field">
+          <label>Beoordeling</label>
+          <div class="beoord-blok">
+            <div id="beoordLijst" class="beoord-lijst"></div>
+            <button type="button" class="btn-add" id="beoordBtn">Rapportcijfer geven</button>
+          </div>
+        </div>
+        <div class="field" style="display:none">
           <label for="fAantallen">Aantallen verwacht</label>
           <textarea id="fAantallen" rows="2" placeholder="Bijv. 500 m³"></textarea>
         </div>
@@ -942,9 +1007,9 @@
     </div>
     <div class="modal-actions">
       <div class="modal-actions-row">
-        <button type="button" class="btn-secondary btn-copy-year" id="newVersionBtn" style="display:none">&#128203; Nieuwe versie (kopie)</button>
+        <button type="button" class="btn-secondary btn-copy-year" id="newVersionBtn" style="display:none">Nieuwe versie (kopie)</button>
         <button type="button" class="btn-secondary btn-copy-year" id="copyYearBtn" style="display:none">Kopie naar nieuw jaar</button>
-        <button type="button" class="btn-secondary btn-copy-year" id="kaartBtn" style="display:none">&#128247; Receptkaart</button>
+        <button type="button" class="btn-secondary btn-copy-year" id="kaartBtn" style="display:none">Receptkaart</button>
       </div>
       <div class="modal-actions-row">
         <button type="button" class="btn-secondary" id="cancelBtn">Annuleren</button>
@@ -958,7 +1023,7 @@
 <div class="uitleg-overlay" id="uitlegOverlay" style="display:none">
   <div class="uitleg-venster">
     <div class="uitleg-kop">
-      <h2>&#10067; Uitleg van de tabel</h2>
+      <h2>Uitleg van de tabel</h2>
       <button type="button" class="modal-close" id="uitlegClose" aria-label="Sluiten">&#10005;</button>
     </div>
     <div class="uitleg-schaal" id="uitlegSchaal">
@@ -971,7 +1036,7 @@
           <div class="ux-bar">
             <span class="ux-knop" id="ux-jaar">Jaar &#9662;</span>
             <span class="ux-knop ux-blauw" id="ux-nieuwste">Nieuwste: Ja</span>
-            <span class="ux-knop" id="ux-zoek">&#128269; Zoeken</span>
+            <span class="ux-knop" id="ux-zoek">Zoeken</span>
             <span class="ux-knop ux-blauw" id="ux-nieuw">+ Mengsel aanmaken</span>
           </div>
           <table class="ux-tabel">
@@ -1014,26 +1079,26 @@
           <b>&ndash; = niet</b><br>in dit mengsel</div>
       </div>
     </div>
-    <p class="uitleg-voet">Bovenin: <b>&#128101; Klanten</b> en <b>&#9881; Componenten</b> = lijsten beheren &middot; <b>&#10227; Bijwerken</b> = nieuwste versie van de app &middot; <b>&#9974; Volledig scherm</b> &middot; <b>Ctrl + F</b> = zoeken</p>
+    <p class="uitleg-voet">Bovenin: <b>Klanten</b> en <b>Componenten</b> = lijsten beheren &middot; <b>Bijwerken</b> = nieuwste versie van de app &middot; <b>Volledig scherm</b> &middot; <b>Ctrl + F</b> = zoeken</p>
   </div>
 </div>
 
 <div class="modal-overlay" id="zoekOverlay" style="display:none">
   <div class="modal" style="max-width:560px">
     <div class="modal-head">
-      <h2>&#128269; Zoeken</h2>
+      <h2>Zoeken</h2>
       <button type="button" class="modal-close" id="zoekClose" aria-label="Sluiten">&#10005;</button>
     </div>
     <div class="modal-body">
       <div class="panel">
-        <input type="text" id="zoekInput" placeholder="Typ een klant, mengselnaam of component…" autocomplete="off">
-        <p class="hint" style="margin-top:6px">Bijv. <i>Vollebregt</i>, <i>AUX</i> of <i>Perliet</i></p>
+        <input type="text" id="zoekInput" placeholder="Typ een klant, mengsel, teelt of component…" autocomplete="off">
+        <p class="hint" style="margin-top:6px">Bijv. <i>Vollebregt</i>, <i>AUX</i>, <i>cyclaam</i> of <i>Perliet</i></p>
       </div>
       <div id="zoekResultaten"></div>
     </div>
     <div class="modal-actions">
       <div class="modal-actions-row">
-        <button type="button" class="btn-secondary" id="zoekNieuwBtn">&#10133; Nieuw mengsel aanmaken</button>
+        <button type="button" class="btn-secondary" id="zoekNieuwBtn">Nieuw mengsel aanmaken</button>
         <button type="button" class="btn-primary" id="zoekToonBtn" disabled>Toon in overzicht</button>
       </div>
     </div>
@@ -1071,7 +1136,7 @@
     <div class="modal-body">
       <div class="panel">
         <p class="sub">Voeg toe, pas aan of zet in een andere volgorde. Een nieuwe naam wordt ook in de bestaande mengsels aangepast.</p>
-        <div class="comp-head"><span>Naam</span><span>Code</span><span>Soort</span><span>Eenheid</span><span>&#128172; Notitie</span></div>
+        <div class="comp-head"><span>Naam</span><span>Code</span><span>Soort</span><span>Eenheid</span><span>Notitie</span></div>
         <div id="compRows"></div>
         <button type="button" class="btn-add" id="compAddBtn">+ Component toevoegen</button>
       </div>
@@ -1827,7 +1892,7 @@
   const mobileChromeToggle = document.getElementById('mobileChromeToggle');
   if (window.matchMedia('(max-width: 640px)').matches) appRootEl.classList.add('chrome-collapsed');
   function updateMobileChromeToggleLabel() {
-    mobileChromeToggle.innerHTML = appRootEl.classList.contains('chrome-collapsed') ? '&#9776; Menu' : '&#10005; Menu verbergen';
+    mobileChromeToggle.innerHTML = appRootEl.classList.contains('chrome-collapsed') ? 'Menu' : 'Menu verbergen';
   }
   updateMobileChromeToggleLabel();
   mobileChromeToggle.addEventListener('click', () => {
@@ -2095,6 +2160,9 @@
     document.getElementById('fAanvraag').value = '';
     document.getElementById('fBevestigd').value = '';
     document.getElementById('fNotitie').value = '';
+    document.getElementById('fTeelt').value = '';
+    editBeoordelingen = [];
+    toonBeoordelingen();
     document.getElementById('fAantallen').value = '';
     const bevestigdDoorEl = document.getElementById('bevestigdDoorInfo');
     bevestigdDoorEl.style.display = 'none';
@@ -2109,6 +2177,9 @@
     document.getElementById('fAanvraag').value = ddmmyyyyToISO(col.aanvraag);
     document.getElementById('fBevestigd').value = ddmmyyyyToISO(col.bevestigd);
     document.getElementById('fNotitie').value = col.notitie || '';
+    document.getElementById('fTeelt').value = col.teelt || '';
+    editBeoordelingen = Array.isArray(col.beoordelingen) ? col.beoordelingen.map(b => ({ ...b })) : [];
+    toonBeoordelingen();
     document.getElementById('fAantallen').value = col.aantallen_verwacht || '';
     const bevestigdDoorEl = document.getElementById('bevestigdDoorInfo');
     if (col.bevestigd && col.bevestigd_door) {
@@ -2241,7 +2312,7 @@
   function rememberComboValues() { lastKlantVal = fKlantSelect.value; lastRasVal = fRasSelect.value; }
 
   fKlantSelect.addEventListener('change', () => {
-    if (editingKey && !confirm('Dit recept naar een andere klant verplaatsen?\n\n(Een klantnaam wijzigen doe je via 👥 Klanten.)')) {
+    if (editingKey && !confirm('Dit recept naar een andere klant verplaatsen?\n\n(Een klantnaam wijzigen doe je via Klanten.)')) {
       fKlantSelect.value = lastKlantVal;
       return;
     }
@@ -2367,6 +2438,8 @@
       bevestigd: newBevestigd,
       bevestigd_door: bevestigdDoor,
       notitie: document.getElementById('fNotitie').value.trim() || null,
+      teelt: document.getElementById('fTeelt').value.trim() || null,
+      beoordelingen: editBeoordelingen.slice(),
       aantallen_verwacht: document.getElementById('fAantallen').value.trim() || null,
       colors: colorsArr,
       submix: prevRecord ? (prevRecord.submix || []) : []
@@ -2396,6 +2469,59 @@
     buildMatrix();
     closeModal();
     syncToFirestore();
+  });
+
+  // ---------- Rapportcijfer ----------
+  let editBeoordelingen = [];
+  let gekozenCijfer = 0;
+  const beoordOverlay = document.getElementById('beoordOverlay');
+  function datumNaarSort(d) { const m = /^(\d{2})-(\d{2})-(\d{4})$/.exec(d || ''); return m ? m[3] + m[2] + m[1] : ''; }
+  function gemiddeldeVan(lijst) {
+    if (!lijst || !lijst.length) return null;
+    return lijst.reduce((a, b) => a + (Number(b.c) || 0), 0) / lijst.length;
+  }
+  function toonBeoordelingen() {
+    const el = document.getElementById('beoordLijst');
+    if (!el) return;
+    const lijst = editBeoordelingen.slice().sort((a, b) => datumNaarSort(b.d).localeCompare(datumNaarSort(a.d)));
+    if (!lijst.length) { el.innerHTML = ''; return; }
+    const gem = gemiddeldeVan(lijst);
+    el.innerHTML = (lijst.length > 1 ? '<div class="beoord-gem">Gemiddeld: ' + gem.toFixed(1).replace('.', ',') + ' (' + lijst.length + ' keer)</div>' : '') +
+      lijst.map(b => '<div class="beoord-rij"><span class="beoord-cijfer c' + b.c + '">' + b.c + '</span><span class="beoord-tekst">' + escapeAttr(b.d) +
+        (b.door ? ' <small>door ' + escapeAttr(b.door) + '</small>' : '') + (b.o ? '<br><small>' + escapeAttr(b.o) + '</small>' : '') +
+        '</span><button type="button" class="beoord-weg" data-i="' + editBeoordelingen.indexOf(b) + '" title="Verwijderen">&#10005;</button></div>').join('');
+  }
+  document.getElementById('beoordLijst').addEventListener('click', (e) => {
+    const k = e.target.closest('.beoord-weg');
+    if (!k) return;
+    if (!confirm('Dit rapportcijfer verwijderen?')) return;
+    editBeoordelingen.splice(Number(k.dataset.i), 1);
+    toonBeoordelingen();
+  });
+  function kiesCijfer(c) {
+    gekozenCijfer = c;
+    document.querySelectorAll('#cijferKnoppen button').forEach(b => b.classList.toggle('gekozen', Number(b.dataset.c) === c));
+  }
+  document.getElementById('cijferKnoppen').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) kiesCijfer(Number(b.dataset.c)); });
+  document.getElementById('beoordBtn').addEventListener('click', () => {
+    const d = new Date();
+    document.getElementById('beoordDatum').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    document.getElementById('beoordOpm').value = '';
+    kiesCijfer(0);
+    beoordOverlay.style.display = 'flex';
+  });
+  function sluitBeoord() { beoordOverlay.style.display = 'none'; }
+  document.getElementById('beoordClose').addEventListener('click', sluitBeoord);
+  document.getElementById('beoordAnnuleer').addEventListener('click', sluitBeoord);
+  beoordOverlay.addEventListener('click', (e) => { if (e.target === beoordOverlay) sluitBeoord(); });
+  document.getElementById('beoordOk').addEventListener('click', () => {
+    if (!gekozenCijfer) { alert('Kies een cijfer van 1 tot 5.'); return; }
+    const datum = isoToDdmmyyyy(document.getElementById('beoordDatum').value);
+    if (!datum) { alert('Vul een datum in.'); return; }
+    editBeoordelingen.push({ d: datum, c: gekozenCijfer, o: document.getElementById('beoordOpm').value.trim() || null, door: currentUserNaam || null });
+    toonBeoordelingen();
+    sluitBeoord();
+    showSaveToast('Cijfer toegevoegd — vergeet niet op Opslaan te klikken', false);
   });
 
   // ---------- Receptkaart ----------
@@ -2434,11 +2560,17 @@
       if (r.length) body += '<div class="kaart-sec"><span>' + titel + '</span></div>' + r.map(c => rijHtml(c, soort)).join('');
     });
     if (col.notitie) body += '<div class="kaart-notitie"><b>Notitie</b>' + escapeAttr(col.notitie) + '</div>';
-    if (col.aantallen_verwacht) body += '<div class="kaart-notitie"><b>Aantallen verwacht</b>' + escapeAttr(col.aantallen_verwacht) + '</div>';
     const kort = d => d ? String(d).replace(/^(\d{2})-(\d{2})-\d{2}(\d{2})$/, '$1-$2-$3') : '';
     const datums = (col.bevestigd ? '<span><span class="k-vink">&#10003;</span>Bevestigd ' + escapeAttr(kort(col.bevestigd)) + (col.bevestigd_door ? ' door ' + escapeAttr(col.bevestigd_door) : '') + '</span>' : '<span>Nog niet bevestigd</span>') +
-      (col.aanvraag ? '<span>Aanvraag ' + escapeAttr(kort(col.aanvraag)) + '</span>' : '');
+      (col.aanvraag ? '<span>Aanvraag ' + escapeAttr(kort(col.aanvraag)) + '</span>' : '') +
+      ((col.beoordelingen && col.beoordelingen.length) ? (() => {
+        const l = col.beoordelingen.slice().sort((a, b) => datumNaarSort(b.d).localeCompare(datumNaarSort(a.d)))[0];
+        const g = gemiddeldeVan(col.beoordelingen);
+        return '<span class="kaart-beoord">Cijfer <span class="beoord-cijfer c' + l.c + '">' + l.c + '</span>' +
+          (col.beoordelingen.length > 1 ? ' (gem. ' + g.toFixed(1).replace('.', ',') + ')' : '') + '</span>';
+      })() : '');
     return '<div class="kaart-kop"><div class="k-klant">' + escapeAttr(col.grower) + '</div><div class="k-naam">' + escapeAttr(col.ras) + '</div><div class="k-datum">' + datums + '</div></div>' +
+      (col.teelt ? '<div class="kaart-teelt"><b>Teelt</b>' + escapeAttr(col.teelt) + '</div>' : '') +
       '<div class="kaart-body">' + (body || '<p>Nog geen componenten ingevuld.</p>') + '</div>' +
       '<div class="kaart-voet">Potgrond Recepten · ' + vandaagTekst() + '</div>';
   }
@@ -2513,7 +2645,7 @@
       '<div class="ci-meta">' + (c.c ? 'Code: <b>' + escapeAttr(c.c) + '</b> · ' : '') + soort + (eh ? ' · ' + escapeAttr(eh) : '') + '</div>' +
       (c.o ? '<div class="ci-oms">' + escapeAttr(c.o) + '</div>' : '<div class="ci-oms ci-leeg">Nog geen omschrijving.</div>') +
       '<div class="ci-gebruik">Gebruikt in ' + aantal + ' recept' + (aantal === 1 ? '' : 'en') + '</div>' +
-      (COMPONENTS.some(x => x.n === naam) ? '<button type="button" class="ci-bewerk">&#9998; Omschrijving wijzigen</button>' : '');
+      (COMPONENTS.some(x => x.n === naam) ? '<button type="button" class="ci-bewerk">Omschrijving wijzigen</button>' : '');
     compInfoEl.style.display = 'block';
     const r = cel.getBoundingClientRect();
     const breed = compInfoEl.offsetWidth;
@@ -2645,9 +2777,21 @@
       klanten.forEach(k => {
         const rec = basis.filter(c => c.grower === k);
         rec.forEach(c => ids.add(c.id));
-        html += '<button type="button" class="zoek-item" data-klant="' + escapeAttr(k) + '"><span>&#128101; ' + markeer(k, q) +
+        html += '<button type="button" class="zoek-item" data-klant="' + escapeAttr(k) + '"><span>' + markeer(k, q) +
           '</span><small>' + rec.length + ' mengsel' + (rec.length === 1 ? '' : 's') + ' · tonen</small></button>';
-        html += '<div class="zoek-sub"><button type="button" class="zoek-item" data-nieuwklant="' + escapeAttr(k) + '"><span>&#10133; Nieuw mengsel voor ' + escapeAttr(k) + '</span></button></div>';
+        html += '<div class="zoek-sub"><button type="button" class="zoek-item" data-nieuwklant="' + escapeAttr(k) + '"><span>Nieuw mengsel voor ' + escapeAttr(k) + '</span></button></div>';
+      });
+      html += '</div>';
+    }
+
+    // Teelt
+    const teelten = basis.filter(c => c.teelt && norm(c.teelt).includes(nq));
+    if (teelten.length) {
+      html += '<div class="zoek-groep"><h3>Teelt</h3>';
+      teelten.forEach(c => {
+        ids.add(c.id);
+        html += '<button type="button" class="zoek-item" data-id="' + escapeAttr(c.id) + '"><span>' + escapeAttr(c.grower) + ' – <b>' + escapeAttr(c.ras) +
+          '</b><br><small style="color:#2F6B4A">' + markeer(c.teelt, q) + '</small></span><small>' + (c.bevestigd ? '&#10003; ' : '') + escapeAttr(kortDatumVan(c)) + '</small></button>';
       });
       html += '</div>';
     }
@@ -2673,7 +2817,7 @@
         const soort = typeVan(n);
         const eh = eenheidVan(n);
         const met = basis.filter(c => (c.colors || []).some(x => x[0] === n));
-        html += '<p style="margin:6px 0 4px;font-size:13.5px;font-weight:700">&#9881; ' + markeer(n, q) +
+        html += '<p style="margin:6px 0 4px;font-size:13.5px;font-weight:700">' + markeer(n, q) +
           ' <small style="font-weight:400;color:#555B60">— in ' + met.length + ' mengsel' + (met.length === 1 ? '' : 's') + '</small></p>';
         if (!met.length) html += '<p class="hint" style="margin:0 0 6px 10px">Komt in geen enkel mengsel voor.</p>';
         html += '<div class="zoek-sub">';
@@ -2690,7 +2834,7 @@
 
     zoekLaatsteIds = [...ids];
     if (!html) {
-      html = '<p class="zoek-leeg">Niets gevonden voor "<b>' + escapeAttr(q) + '</b>".<br>Wil je een nieuw mengsel maken? Klik hieronder op <b>➕ Nieuw mengsel aanmaken</b>.</p>';
+      html = '<p class="zoek-leeg">Niets gevonden voor "<b>' + escapeAttr(q) + '</b>".<br>Wil je een nieuw mengsel maken? Klik hieronder op <b>Nieuw mengsel aanmaken</b>.</p>';
     }
     zoekToonBtn.disabled = !zoekLaatsteIds.length;
     zoekToonBtn.textContent = zoekLaatsteIds.length ? 'Toon ' + zoekLaatsteIds.length + ' in overzicht' : 'Toon in overzicht';
@@ -2708,7 +2852,7 @@
   function toonZoekBanner() {
     const b = document.getElementById('zoekBanner');
     if (!zoekIds) { b.style.display = 'none'; return; }
-    document.getElementById('zoekBannerTekst').textContent = '🔍 Zoekresultaat voor "' + zoekTerm + '"';
+    document.getElementById('zoekBannerTekst').textContent = 'Zoekresultaat voor "' + zoekTerm + '"';
     b.style.display = '';
   }
 
@@ -2890,6 +3034,7 @@
     modalTitle.textContent = 'Mengsel bewerken: ' + editingKey.grower + ' ' + editingKey.ras + ' (kopie ' + nextYear + ')';
   });
   newVersionBtn.addEventListener('click', () => {
+    editBeoordelingen = []; toonBeoordelingen();  // een nieuwe versie begint zonder cijfers
     if (!editingKey) return;
     if (!confirm('Nieuwe versie maken van dit recept? De oude versie blijft bewaard.')) return;
     const recNu = currentEditColumnByKey(editingKey);
@@ -2910,7 +3055,7 @@
   const kanFullscreen = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
   function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
   function toonFullscreenKnop() {
-    fullscreenBtn.innerHTML = isFullscreen() ? '&#10005; Terug' : '&#9974; Volledig scherm';
+    fullscreenBtn.innerHTML = isFullscreen() ? 'Terug' : 'Volledig scherm';
   }
   if (kanFullscreen) {
     fullscreenBtn.style.display = '';
@@ -2929,7 +3074,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.31';
+  const APP_VERSIE = '0.32';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
@@ -2939,7 +3084,7 @@
       if (m && m[1] !== APP_VERSIE) {
         const btn = document.getElementById('updateBtn');
         btn.classList.add('nieuw');
-        btn.innerHTML = '&#10227; Nieuwe versie ' + m[1];
+        btn.innerHTML = 'Nieuwe versie ' + m[1];
       }
     } catch (e) { /* geen verbinding: niets doen */ }
   }
