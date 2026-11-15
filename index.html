@@ -982,7 +982,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.39 — 15 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.40 — 15 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -2560,6 +2560,19 @@
     syncToFirestore();
   });
 
+  // ---------- Rechtermuisknop = linkermuisknop ----------
+  // In invulvelden blijft het gewone menu (plakken/kopiëren) werken.
+  const KLIKBAAR = 'button, a[href], th.clickable, th.comp-cel, .zoek-item, .zoek-actie, label, input[type="checkbox"], input[type="radio"], .ms-checkbox';
+  document.addEventListener('contextmenu', (e) => {
+    const t = e.target;
+    if (t.closest('input:not([type="checkbox"]):not([type="radio"]), textarea, select, [contenteditable="true"]')) return;
+    const el = t.closest(KLIKBAAR);
+    if (!el) return;
+    e.preventDefault();
+    if (el.disabled) return;
+    el.click();
+  });
+
   // ---------- Hulp in het mengselscherm ----------
   const hulpOverlay = document.getElementById('hulpOverlay');
   document.getElementById('mengselHulpBtn').addEventListener('click', () => { hulpOverlay.style.display = 'flex'; hulpOverlay.scrollTop = 0; });
@@ -3211,7 +3224,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.39';
+  const APP_VERSIE = '0.40';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
