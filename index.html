@@ -981,7 +981,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.37 — 15 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.38 — 15 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -2656,13 +2656,7 @@
     if (col.notitie) body += '<div class="kaart-notitie"><b>Notitie</b>' + escapeAttr(col.notitie) + '</div>';
     const kort = d => d ? String(d).replace(/^(\d{2})-(\d{2})-\d{2}(\d{2})$/, '$1-$2-$3') : '';
     const datums = (col.bevestigd ? '<span><span class="k-vink">&#10003;</span>Bevestigd ' + escapeAttr(kort(col.bevestigd)) + (col.bevestigd_door ? ' door ' + escapeAttr(col.bevestigd_door) : '') + '</span>' : '<span>Nog niet bevestigd</span>') +
-      (col.aanvraag ? '<span>Aanvraag ' + escapeAttr(kort(col.aanvraag)) + '</span>' : '') +
-      ((col.beoordelingen && col.beoordelingen.length) ? (() => {
-        const l = col.beoordelingen.slice().sort((a, b) => datumNaarSort(b.d).localeCompare(datumNaarSort(a.d)))[0];
-        const g = gemiddeldeVan(col.beoordelingen);
-        return '<span class="kaart-beoord">Cijfer <span class="beoord-cijfer c' + l.c + '">' + l.c + '</span>' +
-          (col.beoordelingen.length > 1 ? ' (gem. ' + g.toFixed(1).replace('.', ',') + ')' : '') + '</span>';
-      })() : '');
+      (col.aanvraag ? '<span>Aanvraag ' + escapeAttr(kort(col.aanvraag)) + '</span>' : '');
     return '<div class="kaart-kop"><div class="k-klant">' + escapeAttr(col.grower) + '</div><div class="k-naam">' + escapeAttr(col.ras) + '</div><div class="k-datum">' + datums + '</div></div>' +
       (col.teelt ? '<div class="kaart-teelt"><b>Teelt</b>' + escapeAttr(col.teelt) + '</div>' : '') +
       '<div class="kaart-body">' + (body || '<p>Nog geen componenten ingevuld.</p>') + '</div>' +
@@ -3215,7 +3209,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.37';
+  const APP_VERSIE = '0.38';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
