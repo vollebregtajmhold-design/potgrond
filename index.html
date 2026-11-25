@@ -197,9 +197,8 @@
   .ms-rij:hover { background: var(--tint-blue); }
   .ms-rij .multi-select-item { flex: 1; min-width: 0; }
   .ms-rij .multi-select-item:hover { background: transparent; }
-  .ms-alleen { font-family: inherit; font-size: 10.5px; font-weight: 700; color: #555B60; background: none; border: 1px solid #CCC; border-radius: 6px; padding: 1px 6px; cursor: pointer; opacity: 0; }
-  .ms-rij:hover .ms-alleen, .ms-alleen:focus { opacity: 1; }
-  @media (pointer: coarse) { .ms-alleen { opacity: 1; } }
+  .ms-alleen { font-family: inherit; font-size: 10.5px; font-weight: 700; color: var(--blauw); background: #FFF; border: 1px solid #9DBEE6; border-radius: 6px; padding: 1px 7px; cursor: pointer; }
+  .ms-alleen:hover { background: #E3ECFA; }
   .ms-niets { font-size: 12.5px; color: #777; padding: 4px; margin: 0; }
   .multi-select-dropdown { width: 260px; max-height: 340px; }
   .multi-select-footer button {
@@ -1001,7 +1000,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.43 — 25 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.44 — 25 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1792,7 +1791,7 @@
     } else {
       lijst = options.map(item).join('');
     }
-    const zoekbaar = options.length > 4;
+    const zoekbaar = true;  // zoekvak altijd tonen
     dropdown.innerHTML =
       (zoekbaar ? '<div class="ms-zoek"><input type="text" class="ms-zoekveld" placeholder="Typ om te zoeken…" autocomplete="off"><div class="ms-zoek-hint">Enter = alleen deze aanvinken</div></div>' : '') +
       '<div class="ms-lijst">' + lijst + '<p class="ms-niets" style="display:none">Niets gevonden.</p></div>' +
@@ -3319,7 +3318,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.43';
+  const APP_VERSIE = '0.44';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
