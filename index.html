@@ -986,7 +986,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.41 — 25 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.42 — 25 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1714,11 +1714,14 @@
   alleenNieuwste = true; // bij openen altijd aan
 
   function filteredDataForMatrix() {
-    const lijst = DATA.filter(col =>
-      (selKlant.size ? selKlant.has(col.grower) : !isOpKleurGrower(col.grower)) &&
-      (!selJaar.size || selJaar.has(jaarVan(col))) &&
-      (!selSerie.size || selSerie.has(col.ras))
-    );
+    const lijst = DATA.filter(col => {
+      if (isOpKleurGrower(col.grower) && !selKlant.has(col.grower)) return false;
+      if (selJaar.size && !selJaar.has(jaarVan(col))) return false;
+      const klantOk = !selKlant.size || selKlant.has(col.grower);
+      // Een los aangevinkt mengsel van een andere klant wordt ook getoond
+      if (selSerie.size) return selSerie.has(col.ras);
+      return klantOk;
+    });
     if (zoekIds) {
       const z = lijst.filter(col => zoekIds.has(col.id));
       lijst.length = 0; z.forEach(c => lijst.push(c));
@@ -1748,6 +1751,7 @@
     document.getElementById(btnId).querySelector('.ms-label').textContent = multiSelectLabel(sel, allLabel);
   }
 
+  let vorigeKlantSleutel = '';
   function renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel, groep) {
     const dropdown = document.getElementById(dropdownId);
     if (!options.length) {
@@ -1755,8 +1759,10 @@
       updateMultiSelectUI(btnId, sel, allLabel);
       return;
     }
+    // Basis = wat "Alle" betekent: bij een gekozen klant alleen diens mengsels
+    const basis = (groep && groep.eerst.length) ? groep.eerst : options;
     const item = o => {
-      const checked = (!sel.size || sel.has(o)) ? ' checked' : '';
+      const checked = (sel.size ? sel.has(o) : basis.includes(o)) ? ' checked' : '';
       return '<label class="multi-select-item"><input type="checkbox" class="ms-checkbox" value="' + escapeAttr(o) + '"' + checked + '> ' + o + '</label>';
     };
     let html;
@@ -1768,21 +1774,16 @@
     } else {
       html = options.map(item).join('');
     }
-    html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">Alles aanvinken</button></div>';
+    html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">' + (basis === options ? 'Alles aanvinken' : 'Alleen mengsels van klant') + '</button></div>';
     dropdown.innerHTML = html;
 
     dropdown.querySelectorAll('.ms-checkbox').forEach(cb => {
       cb.addEventListener('change', () => {
-        if (cb.checked) {
-          sel.add(cb.value);
-        } else if (!sel.size) {
-          // Alles stond aan: alles behalve deze
-          options.forEach(o => { if (o !== cb.value) sel.add(o); });
-        } else {
-          sel.delete(cb.value);
-        }
-        if (sel.size === options.length) sel.clear(); // alles gekozen = geen filter
-        if (!sel.size) dropdown.querySelectorAll('.ms-checkbox').forEach(x => { x.checked = true; });
+        if (!sel.size) basis.forEach(o => sel.add(o));   // "Alle" eerst uitschrijven
+        if (cb.checked) sel.add(cb.value); else sel.delete(cb.value);
+        const gelijkAanBasis = sel.size === basis.length && basis.every(o => sel.has(o));
+        if (gelijkAanBasis) sel.clear();                    // terug naar "Alle"
+        dropdown.querySelectorAll('.ms-checkbox').forEach(x => { x.checked = sel.size ? sel.has(x.value) : basis.includes(x.value); });
         updateMultiSelectUI(btnId, sel, allLabel);
         buildMatrix();
       });
@@ -1792,7 +1793,7 @@
       wisBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         sel.clear();
-        renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel);
+        renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel, groep);
         buildMatrix();
       });
     }
@@ -1817,6 +1818,8 @@
     renderMultiSelectPanel('jaarSelectDropdown', 'jaarSelectBtn', jaren, selJaar, 'Alle jaren');
     renderMultiSelectPanel('klantSelectDropdown', 'klantSelectBtn', klanten, selKlant, 'Alle klanten');
     const gekozenKlanten = [...selKlant];
+    const klantSleutel = gekozenKlanten.slice().sort().join('|');
+    if (klantSleutel !== vorigeKlantSleutel) { selSerie.clear(); vorigeKlantSleutel = klantSleutel; }
     const vanKlant = gekozenKlanten.length
       ? series.filter(r => DATA.some(d => d.ras === r && selKlant.has(d.grower)))
       : [];
@@ -3242,7 +3245,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.41';
+  const APP_VERSIE = '0.42';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
