@@ -634,6 +634,10 @@
   @media (pointer: coarse), (max-width: 640px) { .hulp-kaart { font-size: 15.5px; } .hulp-kaart > b { font-size: 16.5px; } }
   @media (max-width: 640px) { .toolbar-right { width: auto !important; flex-direction: row !important; align-self: flex-end; } }
 
+  .filter-field label.multi-select-item { text-transform: none; letter-spacing: 0; font-size: 13.5px; font-weight: 500; color: var(--text); margin-bottom: 0; display: flex; }
+  .ms-kop { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; color: #163E6E; background: #D6E8FA; border-radius: 6px; padding: 4px 6px; margin: 2px 0 3px; }
+  .ms-kop-rest { color: #555B60; background: #EEEEEE; margin-top: 8px; }
+
   /* Zoekknop blauw, zoals + Mengsel aanmaken */
   #zoekBtn { background: var(--blauw); color: #FFFFFF; border: 2px solid #164A9C; border-radius: 8px; box-shadow: 0 4px 12px -4px rgba(31,95,196,0.6); }
   #zoekBtn:hover { background: #1A54AF; border-color: #164A9C; }
@@ -982,7 +986,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.40 — 15 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.41 — 25 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1744,17 +1748,26 @@
     document.getElementById(btnId).querySelector('.ms-label').textContent = multiSelectLabel(sel, allLabel);
   }
 
-  function renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel) {
+  function renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel, groep) {
     const dropdown = document.getElementById(dropdownId);
     if (!options.length) {
       dropdown.innerHTML = '<p class="multi-select-empty">Geen opties beschikbaar.</p>';
       updateMultiSelectUI(btnId, sel, allLabel);
       return;
     }
-    let html = options.map(o => {
+    const item = o => {
       const checked = (!sel.size || sel.has(o)) ? ' checked' : '';
       return '<label class="multi-select-item"><input type="checkbox" class="ms-checkbox" value="' + escapeAttr(o) + '"' + checked + '> ' + o + '</label>';
-    }).join('');
+    };
+    let html;
+    if (groep && groep.eerst.length) {
+      // Eerst de opties van de gekozen klant(en), daarna de rest
+      const rest = options.filter(o => !groep.eerst.includes(o));
+      html = '<div class="ms-kop">' + escapeAttr(groep.kopEerst) + '</div>' + groep.eerst.map(item).join('') +
+        (rest.length ? '<div class="ms-kop ms-kop-rest">' + escapeAttr(groep.kopRest) + '</div>' + rest.map(item).join('') : '');
+    } else {
+      html = options.map(item).join('');
+    }
     html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">Alles aanvinken</button></div>';
     dropdown.innerHTML = html;
 
@@ -1803,7 +1816,12 @@
 
     renderMultiSelectPanel('jaarSelectDropdown', 'jaarSelectBtn', jaren, selJaar, 'Alle jaren');
     renderMultiSelectPanel('klantSelectDropdown', 'klantSelectBtn', klanten, selKlant, 'Alle klanten');
-    renderMultiSelectPanel('serieSelectDropdown', 'serieSelectBtn', series, selSerie, 'Alle mengsels');
+    const gekozenKlanten = [...selKlant];
+    const vanKlant = gekozenKlanten.length
+      ? series.filter(r => DATA.some(d => d.ras === r && selKlant.has(d.grower)))
+      : [];
+    renderMultiSelectPanel('serieSelectDropdown', 'serieSelectBtn', series, selSerie, 'Alle mengsels',
+      vanKlant.length ? { eerst: vanKlant, kopEerst: 'Van ' + (gekozenKlanten.length === 1 ? gekozenKlanten[0] : 'gekozen klanten'), kopRest: 'Overige mengsels' } : null);
   }
 
   function buildMatrix() {
@@ -3224,7 +3242,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.40';
+  const APP_VERSIE = '0.41';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
