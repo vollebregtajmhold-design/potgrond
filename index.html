@@ -186,7 +186,22 @@
   .multi-select-item:hover { background: var(--tint-blue); }
   .multi-select-item input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; cursor: pointer; flex: 0 0 auto; }
   .multi-select-empty { font-size: 12.5px; color: var(--text-dim); padding: 4px; }
-  .multi-select-footer { display: flex; justify-content: flex-end; padding-top: 6px; margin-top: 4px; border-top: 1px solid var(--border); }
+  .multi-select-footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 4px; padding-top: 6px; margin-top: 4px; border-top: 1px solid var(--border); }
+  .ms-knop { font-family: inherit; font-size: 11.5px; font-weight: 700; color: var(--blauw); background: #FFF; border: 1px solid #9DBEE6; border-radius: 999px; cursor: pointer; padding: 4px 9px; }
+  .ms-knop:hover { background: #E3ECFA; }
+  .ms-zoek { position: sticky; top: -8px; background: #FFF; padding: 0 0 6px; margin-top: -2px; z-index: 1; }
+  .ms-zoekveld { width: 100%; box-sizing: border-box; font-family: inherit; font-size: 13.5px; border: 1px solid #000; border-radius: 8px; padding: 6px 9px; }
+  .ms-zoekveld:focus { outline: 2px solid var(--blauw); outline-offset: 0; }
+  .ms-zoek-hint { font-size: 10.5px; color: #777; margin-top: 2px; }
+  .ms-rij { display: flex; align-items: center; justify-content: space-between; gap: 4px; border-radius: 8px; }
+  .ms-rij:hover { background: var(--tint-blue); }
+  .ms-rij .multi-select-item { flex: 1; min-width: 0; }
+  .ms-rij .multi-select-item:hover { background: transparent; }
+  .ms-alleen { font-family: inherit; font-size: 10.5px; font-weight: 700; color: #555B60; background: none; border: 1px solid #CCC; border-radius: 6px; padding: 1px 6px; cursor: pointer; opacity: 0; }
+  .ms-rij:hover .ms-alleen, .ms-alleen:focus { opacity: 1; }
+  @media (pointer: coarse) { .ms-alleen { opacity: 1; } }
+  .ms-niets { font-size: 12.5px; color: #777; padding: 4px; margin: 0; }
+  .multi-select-dropdown { width: 260px; max-height: 340px; }
   .multi-select-footer button {
     font-family: inherit; font-size: 11.5px; font-weight: 700; color: var(--accent);
     background: transparent; border: none; cursor: pointer; padding: 4px 6px;
@@ -986,7 +1001,7 @@
     </div>
   </div>
 
-  <footer id="appFooter">Potgrond versie 0.42 — 25 november 2026</footer>
+  <footer id="appFooter">Potgrond versie 0.43 — 25 november 2026</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" style="display:none">
@@ -1742,16 +1757,20 @@
   const selKlant = new Set();
   const selSerie = new Set();
 
+  const GEEN = '\u0000geen';   // markering: bewust niets aangevinkt
   function multiSelectLabel(sel, allLabel) {
     if (!sel.size) return allLabel;
-    if (sel.size === 1) return [...sel][0];
-    return sel.size + ' geselecteerd';
+    const echt = [...sel].filter(x => x !== GEEN);
+    if (!echt.length) return 'Niets gekozen';
+    if (echt.length === 1) return echt[0];
+    return echt.length + ' geselecteerd';
   }
   function updateMultiSelectUI(btnId, sel, allLabel) {
     document.getElementById(btnId).querySelector('.ms-label').textContent = multiSelectLabel(sel, allLabel);
   }
 
   let vorigeKlantSleutel = '';
+  const msZoekTekst = {};   // zoektekst per lijst, blijft staan bij opnieuw tekenen
   function renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel, groep) {
     const dropdown = document.getElementById(dropdownId);
     if (!options.length) {
@@ -1761,44 +1780,95 @@
     }
     // Basis = wat "Alle" betekent: bij een gekozen klant alleen diens mengsels
     const basis = (groep && groep.eerst.length) ? groep.eerst : options;
-    const item = o => {
-      const checked = (sel.size ? sel.has(o) : basis.includes(o)) ? ' checked' : '';
-      return '<label class="multi-select-item"><input type="checkbox" class="ms-checkbox" value="' + escapeAttr(o) + '"' + checked + '> ' + o + '</label>';
-    };
-    let html;
+    const isAan = o => sel.size ? sel.has(o) : basis.includes(o);
+    const item = o =>
+      '<div class="ms-rij" data-v="' + escapeAttr(o) + '"><label class="multi-select-item"><input type="checkbox" class="ms-checkbox" value="' + escapeAttr(o) + '"' + (isAan(o) ? ' checked' : '') + '> ' + escapeAttr(o) + '</label>' +
+      '<button type="button" class="ms-alleen" data-v="' + escapeAttr(o) + '" title="Alleen deze aanvinken">alleen</button></div>';
+    let lijst;
     if (groep && groep.eerst.length) {
-      // Eerst de opties van de gekozen klant(en), daarna de rest
       const rest = options.filter(o => !groep.eerst.includes(o));
-      html = '<div class="ms-kop">' + escapeAttr(groep.kopEerst) + '</div>' + groep.eerst.map(item).join('') +
+      lijst = '<div class="ms-kop">' + escapeAttr(groep.kopEerst) + '</div>' + groep.eerst.map(item).join('') +
         (rest.length ? '<div class="ms-kop ms-kop-rest">' + escapeAttr(groep.kopRest) + '</div>' + rest.map(item).join('') : '');
     } else {
-      html = options.map(item).join('');
+      lijst = options.map(item).join('');
     }
-    html += '<div class="multi-select-footer"><button type="button" class="ms-clear-btn">' + (basis === options ? 'Alles aanvinken' : 'Alleen mengsels van klant') + '</button></div>';
-    dropdown.innerHTML = html;
+    const zoekbaar = options.length > 4;
+    dropdown.innerHTML =
+      (zoekbaar ? '<div class="ms-zoek"><input type="text" class="ms-zoekveld" placeholder="Typ om te zoeken…" autocomplete="off"><div class="ms-zoek-hint">Enter = alleen deze aanvinken</div></div>' : '') +
+      '<div class="ms-lijst">' + lijst + '<p class="ms-niets" style="display:none">Niets gevonden.</p></div>' +
+      '<div class="multi-select-footer">' +
+        '<button type="button" class="ms-knop" data-actie="aan">Alles aan</button>' +
+        '<button type="button" class="ms-knop" data-actie="uit">Alles uit</button>' +
+        (basis !== options ? '<button type="button" class="ms-knop" data-actie="basis">Alleen van klant</button>' : '') +
+      '</div>';
+
+    const klaar = () => { updateMultiSelectUI(btnId, sel, allLabel); buildMatrix(); };
+    const normaliseer = () => {
+      const gelijkAanBasis = sel.size === basis.length && basis.every(o => sel.has(o));
+      if (gelijkAanBasis) sel.clear();                 // terug naar "Alle"
+      else if (!sel.size) sel.add(GEEN);               // leeg = bewust niets
+      else if (sel.size > 1) sel.delete(GEEN);
+    };
+    const zoekveld = dropdown.querySelector('.ms-zoekveld');
+    const zichtbaar = () => [...dropdown.querySelectorAll('.ms-rij')].filter(r => r.style.display !== 'none').map(r => r.dataset.v);
+    const filter = () => {
+      const q = zoekveld ? norm(zoekveld.value.trim()) : '';
+      msZoekTekst[dropdownId] = zoekveld ? zoekveld.value : '';
+      let n = 0;
+      dropdown.querySelectorAll('.ms-rij').forEach(r => { const ok = !q || norm(r.dataset.v).includes(q); r.style.display = ok ? '' : 'none'; if (ok) n++; });
+      dropdown.querySelectorAll('.ms-kop').forEach(k => { k.style.display = q ? 'none' : ''; });
+      dropdown.querySelector('.ms-niets').style.display = n ? 'none' : '';
+    };
+    if (zoekveld) {
+      zoekveld.value = msZoekTekst[dropdownId] || '';
+      filter();
+      zoekveld.addEventListener('input', filter);
+      zoekveld.addEventListener('click', e => e.stopPropagation());
+      zoekveld.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const v = zichtbaar();
+          if (!v.length) return;
+          sel.clear(); v.forEach(o => sel.add(o)); normaliseer();
+          zoekveld.value = ''; msZoekTekst[dropdownId] = '';
+          klaar();
+        } else if (e.key === 'Escape') {
+          if (zoekveld.value) { e.stopPropagation(); zoekveld.value = ''; filter(); }
+        }
+      });
+    }
 
     dropdown.querySelectorAll('.ms-checkbox').forEach(cb => {
       cb.addEventListener('change', () => {
         if (!sel.size) basis.forEach(o => sel.add(o));   // "Alle" eerst uitschrijven
+        sel.delete(GEEN);
         if (cb.checked) sel.add(cb.value); else sel.delete(cb.value);
-        const gelijkAanBasis = sel.size === basis.length && basis.every(o => sel.has(o));
-        if (gelijkAanBasis) sel.clear();                    // terug naar "Alle"
-        dropdown.querySelectorAll('.ms-checkbox').forEach(x => { x.checked = sel.size ? sel.has(x.value) : basis.includes(x.value); });
-        updateMultiSelectUI(btnId, sel, allLabel);
-        buildMatrix();
+        normaliseer();
+        klaar();
       });
     });
-    const wisBtn = dropdown.querySelector('.ms-clear-btn');
-    if (wisBtn) {
-      wisBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sel.clear();
-        renderMultiSelectPanel(dropdownId, btnId, options, sel, allLabel, groep);
-        buildMatrix();
+    dropdown.querySelectorAll('.ms-alleen').forEach(k => {
+      k.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        sel.clear(); sel.add(k.dataset.v); normaliseer();
+        msZoekTekst[dropdownId] = '';
+        klaar();
       });
-    }
+    });
+    dropdown.querySelectorAll('.ms-knop').forEach(k => {
+      k.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const actie = k.dataset.actie;
+        sel.clear();
+        if (actie === 'aan') { if (basis !== options) options.forEach(o => sel.add(o)); }
+        else if (actie === 'uit') sel.add(GEEN);
+        msZoekTekst[dropdownId] = '';
+        klaar();
+      });
+    });
     updateMultiSelectUI(btnId, sel, allLabel);
   }
+
 
   function fillFilterOptions() {
     const jaren = [...new Set(DATA.map(d => jaarVan(d)).filter(Boolean))].sort((a, b) => b.localeCompare(a));
@@ -1809,15 +1879,15 @@
     jaarFilterInitialized = true;
 
     const jarenSet = new Set(jaren);
-    selJaar.forEach(j => { if (!jarenSet.has(j)) selJaar.delete(j); });
+    selJaar.forEach(j => { if (j !== GEEN && !jarenSet.has(j)) selJaar.delete(j); });
     const klantenSet = new Set(klanten);
-    selKlant.forEach(k => { if (!klantenSet.has(k)) selKlant.delete(k); });
+    selKlant.forEach(k => { if (k !== GEEN && !klantenSet.has(k)) selKlant.delete(k); });
     const seriesSet = new Set(series);
-    selSerie.forEach(s => { if (!seriesSet.has(s)) selSerie.delete(s); });
+    selSerie.forEach(s => { if (s !== GEEN && !seriesSet.has(s)) selSerie.delete(s); });
 
     renderMultiSelectPanel('jaarSelectDropdown', 'jaarSelectBtn', jaren, selJaar, 'Alle jaren');
     renderMultiSelectPanel('klantSelectDropdown', 'klantSelectBtn', klanten, selKlant, 'Alle klanten');
-    const gekozenKlanten = [...selKlant];
+    const gekozenKlanten = [...selKlant].filter(k => k !== GEEN);
     const klantSleutel = gekozenKlanten.slice().sort().join('|');
     if (klantSleutel !== vorigeKlantSleutel) { selSerie.clear(); vorigeKlantSleutel = klantSleutel; }
     const vanKlant = gekozenKlanten.length
@@ -1986,7 +2056,11 @@
       e.stopPropagation();
       const wasOpen = wrap.classList.contains('open');
       multiSelectWraps.forEach(w => w.classList.remove('open'));
-      if (!wasOpen) wrap.classList.add('open');
+      if (!wasOpen) {
+        wrap.classList.add('open');
+        const zv = wrap.querySelector('.ms-zoekveld');
+        if (zv && !window.matchMedia('(pointer: coarse)').matches) setTimeout(() => zv.focus(), 20);
+      }
     });
   }
   wireMultiSelectToggle(jaarSelectWrap, 'jaarSelectBtn');
@@ -3245,7 +3319,7 @@
   }
 
   // ---------- Bijwerken vanaf GitHub ----------
-  const APP_VERSIE = '0.42';
+  const APP_VERSIE = '0.43';
   async function controleerNieuweVersie() {
     if (location.protocol !== 'https:') return;
     try {
